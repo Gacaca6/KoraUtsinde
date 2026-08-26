@@ -1,0 +1,4 @@
+# Build-time only — never served to the browser.
+build/
+README.md
+.claude/

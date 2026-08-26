@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="rw">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b2545">
+<meta name="description" content="Ikizamini cya provisoire — kwimenyereza no kwipimisha nta internet.">
+<title>Kora Utware — Ikizamini cya Provisoire</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Kora Utware">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="boot" class="boot">
+  <div class="boot-mark">KU</div>
+  <p>Gutegura ibibazo…</p>
+</div>
+
+<!-- ═══════════════ AHABANZA / HOME ═══════════════ -->
+<section id="screen-home" class="screen">
+  <header class="hero">
+    <div class="hero-top">
+      <div class="brand">
+        <span class="brand-mark">KU</span>
+        <span class="brand-text">
+          <strong>Kora Utware</strong>
+          <small>Ikizamini cya provisoire</small>
+        </span>
+      </div>
+      <button id="btn-install" class="ghost-btn hidden" type="button">Shyiraho</button>
+    </div>
+
+    <div class="readiness" id="readiness">
+      <div class="ready-ring">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <circle class="ring-bg" cx="60" cy="60" r="52"></circle>
+          <circle class="ring-fg" id="ring-fg" cx="60" cy="60" r="52"></circle>
+        </svg>
+        <div class="ready-num"><span id="ready-value">—</span></div>
+      </div>
+      <div class="ready-text">
+        <strong id="ready-label">Ntabwo urapima</strong>
+        <span id="ready-sub">Tangira ikizamini cya mbere kugira ngo umenye aho ugeze.</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <button id="btn-start-exam" class="primary-btn big" type="button">
+      <span class="big-label">Tangira Ikizamini</span>
+      <span class="big-sub">Ibibazo 20 · Iminota <span data-mins>20</span> · Gutsinda 12/20</span>
+    </button>
+
+    <div id="resume-card" class="card resume hidden">
+      <div>
+        <strong>Hari ikizamini utarangije</strong>
+        <span id="resume-info" class="muted"></span>
+      </div>
+      <div class="resume-actions">
+        <button id="btn-resume" class="primary-btn small" type="button">Komeza</button>
+        <button id="btn-discard" class="ghost-btn small" type="button">Siba</button>
+      </div>
+    </div>
+
+    <div class="tiles">
+      <button class="tile" data-practice="all" type="button">
+        <span class="tile-icon" aria-hidden="true">📚</span>
+        <strong>Kwimenyereza</strong>
+        <small>Ibibazo byose · <span id="cnt-all">0</span></small>
+      </button>
+      <button class="tile" data-practice="sign" type="button">
+        <span class="tile-icon" aria-hidden="true">🛑</span>
+        <strong>Ibyapa</strong>
+        <small>Ibimenyetso byo mu muhanda · <span id="cnt-sign">0</span></small>
+      </button>
+      <button class="tile" data-practice="rule" type="button">
+        <span class="tile-icon" aria-hidden="true">📖</span>
+        <strong>Amategeko</strong>
+        <small>Amabwiriza y'umuhanda · <span id="cnt-rule">0</span></small>
+      </button>
+      <button class="tile" data-practice="wrong" type="button">
+        <span class="tile-icon" aria-hidden="true">🎯</span>
+        <strong>Amakosa yanjye</strong>
+        <small>Ibyo wibeshyeho · <span id="cnt-wrong">0</span></small>
+      </button>
+    </div>
+
+    <div class="card stats-card">
+      <h2>Aho ugeze</h2>
+      <div class="stat-grid">
+        <div class="stat"><b id="st-attempts">0</b><span>Ibizamini</span></div>
+        <div class="stat"><b id="st-passed">0</b><span>Watsinze</span></div>
+        <div class="stat"><b id="st-best">—</b><span>Amanota ahanitse</span></div>
+        <div class="stat"><b id="st-avg">—</b><span>Impuzandengo</span></div>
+      </div>
+      <div id="spark" class="spark" aria-hidden="true"></div>
+      <button id="btn-history" class="link-btn" type="button">Reba amateka yose</button>
+    </div>
+
+    <div class="card settings-card">
+      <h2>Igenamiterere</h2>
+      <label class="row-set">
+        <span>Igihe cy'ikizamini</span>
+        <select id="set-duration">
+          <option value="20">Iminota 20</option>
+          <option value="30">Iminota 30</option>
+          <option value="0">Nta gihe ntarengwa</option>
+        </select>
+      </label>
+      <label class="row-set">
+        <span>Kwibutsa amasegonda 60 asigaye</span>
+        <input type="checkbox" id="set-warn" checked>
+      </label>
+      <p class="fineprint">
+        Ibibazo <b id="fp-count">398</b> byakuwe mu gitabo cya provisoire.
+        Porogaramu ikora nta internet.
+      </p>
+      <p class="fineprint" id="ios-hint">
+        <b>Kuyishyira kuri telefone:</b> kuri Android fungura menu ya Chrome uhitemo
+        “Install app”. Kuri iPhone kanda ikimenyetso cyo gusangiza muri Safari,
+        uhitemo “Add to Home Screen”.
+      </p>
+    </div>
+  </main>
+</section>
+
+<!-- ═══════════════ IKIZAMINI / EXAM ═══════════════ -->
+<section id="screen-exam" class="screen exam">
+  <header class="exam-bar">
+    <button id="btn-quit" class="icon-btn" type="button" aria-label="Sohoka">✕</button>
+    <div class="exam-progress">
+      <div class="exam-count"><span id="ex-pos">1</span>/<span id="ex-total">20</span></div>
+      <div class="pbar"><div id="ex-pbar" class="pbar-fill"></div></div>
+    </div>
+    <div id="ex-timer" class="timer">20:00</div>
+  </header>
+
+  <main id="ex-body" class="wrap exam-body"></main>
+
+  <footer class="exam-foot">
+    <button id="btn-prev" class="ghost-btn" type="button">‹ Inyuma</button>
+    <button id="btn-grid" class="ghost-btn" type="button">Ibibazo</button>
+    <button id="btn-flag" class="ghost-btn" type="button">⚑ Menya</button>
+    <button id="btn-next" class="primary-btn" type="button">Komeza ›</button>
+  </footer>
+</section>
+
+<!-- ═══════════════ IBISUBIZO / RESULT ═══════════════ -->
+<section id="screen-result" class="screen">
+  <main class="wrap result-wrap">
+    <div id="verdict" class="verdict">
+      <div class="verdict-score"><span id="rs-score">0</span><small>/20</small></div>
+      <strong id="rs-title">—</strong>
+      <span id="rs-sub" class="muted"></span>
+    </div>
+
+    <div class="card">
+      <div class="stat-grid">
+        <div class="stat"><b id="rs-right">0</b><span>Byiza</span></div>
+        <div class="stat"><b id="rs-wrong">0</b><span>Bibi</span></div>
+        <div class="stat"><b id="rs-blank">0</b><span>Utasubije</span></div>
+        <div class="stat"><b id="rs-time">—</b><span>Igihe</span></div>
+      </div>
+    </div>
+
+    <div id="rs-breakdown" class="card"></div>
+
+    <div class="stack">
+      <button id="btn-review" class="primary-btn" type="button">Reba ibisubizo</button>
+      <button id="btn-again" class="ghost-btn" type="button">Ongera ugerageze</button>
+      <button id="btn-home" class="ghost-btn" type="button">Subira ahabanza</button>
+    </div>
+  </main>
+</section>
+
+<!-- ═══════════════ GUSUBIRAMO / REVIEW ═══════════════ -->
+<section id="screen-review" class="screen">
+  <header class="sub-bar">
+    <button class="icon-btn" data-back type="button">‹</button>
+    <h1 id="review-title">Gusubiramo</h1>
+    <span></span>
+  </header>
+  <main id="review-body" class="wrap"></main>
+</section>
+
+<!-- ═══════════════ KWIMENYEREZA / PRACTICE ═══════════════ -->
+<section id="screen-practice" class="screen">
+  <header class="sub-bar">
+    <button class="icon-btn" data-back type="button">‹</button>
+    <h1 id="pr-title">Kwimenyereza</h1>
+    <div id="pr-tally" class="tally"><span class="t-ok">0</span> · <span class="t-bad">0</span></div>
+  </header>
+  <main id="pr-body" class="wrap"></main>
+  <footer class="exam-foot">
+    <button id="pr-prev" class="ghost-btn" type="button">‹ Inyuma</button>
+    <button id="pr-next" class="primary-btn wide" type="button">Komeza ›</button>
+  </footer>
+</section>
+
+<!-- ═══════════════ AMATEKA / HISTORY ═══════════════ -->
+<section id="screen-history" class="screen">
+  <header class="sub-bar">
+    <button class="icon-btn" data-back type="button">‹</button>
+    <h1>Amateka</h1>
+    <button id="btn-clear" class="link-btn small" type="button">Siba</button>
+  </header>
+  <main id="history-body" class="wrap"></main>
+</section>
+
+<!-- ═══════════════ MODALS ═══════════════ -->
+<div id="grid-sheet" class="sheet hidden">
+  <div class="sheet-panel">
+    <div class="sheet-head">
+      <strong>Ibibazo</strong>
+      <button class="icon-btn" data-close-sheet type="button">✕</button>
+    </div>
+    <div class="legend">
+      <span><i class="dot done"></i>Wasubije</span>
+      <span><i class="dot flag"></i>Wamenyesheje</span>
+      <span><i class="dot todo"></i>Ntacyo</span>
+    </div>
+    <div id="grid-nums" class="grid-nums"></div>
+    <button id="btn-submit" class="primary-btn wide" type="button">Ohereza ikizamini</button>
+  </div>
+</div>
+
+<div id="confirm" class="sheet sheet-center hidden">
+  <div class="sheet-panel confirm-panel">
+    <strong id="cf-title">Ohereza?</strong>
+    <p id="cf-text" class="muted"></p>
+    <div class="confirm-actions">
+      <button id="cf-no" class="ghost-btn" type="button">Oya</button>
+      <button id="cf-yes" class="primary-btn" type="button">Yego</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

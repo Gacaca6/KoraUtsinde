@@ -1,0 +1,214 @@
+/* Kora Utware — service worker (generated; do not edit by hand).
+   Precaches the whole app so it runs with no internet at all. */
+
+const CACHE = 'kora-utware-63bd7d79a9';
+const ASSETS = [
+  "index.html",
+  "styles.css",
+  "app.js",
+  "manifest.webmanifest",
+  "data/questions.json",
+  "icons/apple-touch-icon.png",
+  "icons/favicon-32.png",
+  "icons/icon-192.png",
+  "icons/icon-512.png",
+  "icons/maskable-512.png",
+  "img/q0184_s0.png",
+  "img/q0195_o0.png",
+  "img/q0195_o1.png",
+  "img/q0195_o2.png",
+  "img/q0195_o3.png",
+  "img/q0199_s0.png",
+  "img/q0200_s0.png",
+  "img/q0201_s0.png",
+  "img/q0204_s0.png",
+  "img/q0205_o0.png",
+  "img/q0205_o1.png",
+  "img/q0205_o2.png",
+  "img/q0205_o3.png",
+  "img/q0206_o0.png",
+  "img/q0206_o1.png",
+  "img/q0206_o2.png",
+  "img/q0206_o3.png",
+  "img/q0207_s0.png",
+  "img/q0208_s0.png",
+  "img/q0209_s0.png",
+  "img/q0210_s0.png",
+  "img/q0211_s0.png",
+  "img/q0212_s0.png",
+  "img/q0213_s0.png",
+  "img/q0214_s0.png",
+  "img/q0215_s0.png",
+  "img/q0216_s0.png",
+  "img/q0217_s0.png",
+  "img/q0218_s0.png",
+  "img/q0219_o0.png",
+  "img/q0219_o1.png",
+  "img/q0219_o2.png",
+  "img/q0219_o3.png",
+  "img/q0220_s0.png",
+  "img/q0221_s0.png",
+  "img/q0222_s0.png",
+  "img/q0223_s0.png",
+  "img/q0224_s0.png",
+  "img/q0225_s0.png",
+  "img/q0226_s0.png",
+  "img/q0227_s0.png",
+  "img/q0228_s0.png",
+  "img/q0229_s0.png",
+  "img/q0230_s0.png",
+  "img/q0231_s0.png",
+  "img/q0236_o0.png",
+  "img/q0236_o1.png",
+  "img/q0236_o2.png",
+  "img/q0236_o3.png",
+  "img/q0238_s0.png",
+  "img/q0239_s0.png",
+  "img/q0240_s0.png",
+  "img/q0241_s0.png",
+  "img/q0242_s0.png",
+  "img/q0243_s0.png",
+  "img/q0244_s0.png",
+  "img/q0245_s0.png",
+  "img/q0246_s0.png",
+  "img/q0247_s0.png",
+  "img/q0248_s0.png",
+  "img/q0249_s0.png",
+  "img/q0250_s0.png",
+  "img/q0251_s0.png",
+  "img/q0252_s0.png",
+  "img/q0253_s0.png",
+  "img/q0254_s0.png",
+  "img/q0255_s0.png",
+  "img/q0256_s0.png",
+  "img/q0257_s0.png",
+  "img/q0258_s0.png",
+  "img/q0273_s0.png",
+  "img/q0274_s0.png",
+  "img/q0275_s0.png",
+  "img/q0276_s0.png",
+  "img/q0277_s0.png",
+  "img/q0278_s0.png",
+  "img/q0279_s0.png",
+  "img/q0280_s0.png",
+  "img/q0281_s0.png",
+  "img/q0282_s0.png",
+  "img/q0283_s0.png",
+  "img/q0284_s0.png",
+  "img/q0285_s0.png",
+  "img/q0286_s0.png",
+  "img/q0287_s0.png",
+  "img/q0288_s0.png",
+  "img/q0294_s0.png",
+  "img/q0310_s0.png",
+  "img/q0330_s0.png",
+  "img/q0336_s0.png",
+  "img/q0337_s0.png",
+  "img/q0339_s0.png",
+  "img/q0340_s0.png",
+  "img/q0341_s0.png",
+  "img/q0343_s0.png",
+  "img/q0344_s0.png",
+  "img/q0345_s0.png",
+  "img/q0346_s0.png",
+  "img/q0357_s0.png",
+  "img/q0358_s0.png",
+  "img/q0359_s0.png",
+  "img/q0360_s0.png",
+  "img/q0361_s0.png",
+  "img/q0362_s0.png",
+  "img/q0363_s0.png",
+  "img/q0364_s0.png",
+  "img/q0365_s0.png",
+  "img/q0366_s0.png",
+  "img/q0367_s0.png",
+  "img/q0368_s0.png",
+  "img/q0369_s0.png",
+  "img/q0370_s0.png",
+  "img/q0371_s0.png",
+  "img/q0372_s0.png",
+  "img/q0373_s0.png",
+  "img/q0374_s0.png",
+  "img/q0375_s0.png",
+  "img/q0376_s0.png",
+  "img/q0377_s0.png",
+  "img/q0378_s0.png",
+  "img/q0379_s0.png",
+  "img/q0380_s0.png",
+  "img/q0381_s0.png",
+  "img/q0382_s0.png",
+  "img/q0383_s0.png",
+  "img/q0384_s0.png",
+  "img/q0385_s0.png",
+  "img/q0386_s0.png",
+  "img/q0387_s0.png",
+  "img/q0388_s0.png",
+  "img/q0389_s0.png",
+  "img/q0390_s0.png",
+  "img/q0391_s0.png",
+  "img/q0392_s0.png",
+  "img/q0393_s0.png",
+  "img/q0394_s0.png",
+  "img/q0395_s0.png",
+  "img/q0396_s0.png",
+  "img/q0397_s0.png",
+  "img/q0398_s0.png",
+  "img/q0399_s0.png",
+  "img/q0400_s0.png",
+  "img/q0401_s0.png",
+  "img/q0402_s0.png",
+  "img/q0403_s0.png"
+];
+
+self.addEventListener('install', event => {
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE);
+    // addAll is all-or-nothing; add individually so one bad file can't
+    // break the whole install.
+    await Promise.all(ASSETS.map(async url => {
+      try {
+        const res = await fetch(url, { cache: 'reload' });
+        if (res.ok) await cache.put(url, res);
+      } catch (e) { /* skip; fetched on demand later */ }
+    }));
+    self.skipWaiting();
+  })());
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)));
+    await self.clients.claim();
+  })());
+});
+
+self.addEventListener('fetch', event => {
+  const req = event.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin) return;
+
+  // Navigations: serve the shell from cache so the app opens offline.
+  if (req.mode === 'navigate') {
+    event.respondWith((async () => {
+      const cached = await caches.match('index.html');
+      if (cached) return cached;
+      try { return await fetch(req); }
+      catch (e) { return new Response('Offline', { status: 503 }); }
+    })());
+    return;
+  }
+
+  event.respondWith((async () => {
+    const cached = await caches.match(req, { ignoreSearch: true });
+    if (cached) return cached;
+    try {
+      const res = await fetch(req);
+      if (res.ok) (await caches.open(CACHE)).put(req, res.clone());
+      return res;
+    } catch (e) {
+      return new Response('Offline', { status: 503 });
+    }
+  })());
+});
