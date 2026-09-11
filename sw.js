@@ -229,27 +229,103 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('message', event => {
-  if (event.data && event.data.type === 'topup') {
+  const msg = event.data || {};
+  if (msg.type === 'topup') {
     event.waitUntil(topUp().then(n => {
       event.source && event.source.postMessage({ type: 'topup-done', repaired: n });
     }));
   }
+  if (msg.type === 'version') {
+    event.source && event.source.postMessage({ type: 'version', cache: CACHE });
+  }
+  if (msg.type === 'skip-waiting') self.skipWaiting();
 });
+
+/* ── fetch strategies ───────────────────────────────────────────────
+   The app used to be cache-first for everything, which meant a deploy
+   only reached a phone if sw.js itself changed — one forgotten build
+   step and the installed app was frozen forever. Now freshness does not
+   depend on the worker being rebuilt:
+
+     shell  (html/js/css/json)  network-first, cache is the fallback
+     images (img/, icons/)      cache-first, refreshed in the background
+     rest                       cache-first, then network
+
+   Offline behaviour is unchanged: every branch ends at the cache.     */
+
+const SHELL_RE = /\.(html|js|css|json|webmanifest)$/i;
+const IMAGE_RE = /\.(png|jpe?g|webp|svg|gif|avif)$/i;
+const NET_TIMEOUT = 3500;
+
+function withTimeout(promise, ms) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('slow network')), ms)),
+  ]);
+}
+
+/** Always try the network; fall back to whatever we cached last time. */
+async function networkFirst(req, key) {
+  const cache = await caches.open(CACHE);
+  try {
+    const res = await withTimeout(fetch(req, { cache: 'no-store' }), NET_TIMEOUT);
+    if (!res || !res.ok) throw new Error('bad response');
+    await cache.put(key || req, res.clone());
+    return res;
+  } catch (e) {
+    const cached = await cache.match(key || req, { ignoreSearch: true });
+    if (cached) return cached;
+    throw e;
+  }
+}
+
+/** Paint instantly from cache, quietly pick up a newer copy for next time. */
+async function staleWhileRevalidate(req, event) {
+  const cache = await caches.open(CACHE);
+  const cached = await cache.match(req, { ignoreSearch: true });
+  const fresh = fetch(req)
+    .then(res => { if (res && res.ok) cache.put(req, res.clone()); return res; })
+    .catch(() => null);
+  if (cached) {
+    // keep the worker alive until the refresh lands, without delaying paint
+    try { event.waitUntil(fresh); } catch (e) {}
+    return cached;
+  }
+  const res = await fresh;
+  return res || new Response('Offline', { status: 503 });
+}
 
 self.addEventListener('fetch', event => {
   const req = event.request;
   if (req.method !== 'GET') return;
-  const url = new URL(req.url);
+
+  let url;
+  try { url = new URL(req.url); } catch (e) { return; }
   if (url.origin !== self.location.origin) return;
 
-  // Navigations: serve the shell from cache so the app opens offline.
+  // A launch or reload: this is the one that decides whether the user
+  // sees today's version or last month's.
   if (req.mode === 'navigate') {
     event.respondWith((async () => {
-      const cached = await caches.match('index.html');
-      if (cached) return cached;
-      try { return await fetch(req); }
+      try { return await networkFirst(req, 'index.html'); }
+      catch (e) {
+        const cached = await caches.match('index.html');
+        return cached || new Response('Offline', { status: 503 });
+      }
+    })());
+    return;
+  }
+
+  if (SHELL_RE.test(url.pathname)) {
+    event.respondWith((async () => {
+      try { return await networkFirst(req); }
       catch (e) { return new Response('Offline', { status: 503 }); }
     })());
+    return;
+  }
+
+  if (IMAGE_RE.test(url.pathname)) {
+    event.respondWith(staleWhileRevalidate(req, event));
     return;
   }
 

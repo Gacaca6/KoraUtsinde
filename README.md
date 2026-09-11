@@ -245,6 +245,39 @@ All 2.2 MB of assets are precached on first load. If the connection drops
 mid-download the app repairs the gaps on the next load rather than sitting
 half-cached.
 
+### How updates reach an installed app
+
+An installed PWA can sit on an old build forever if you get this wrong, and on
+iOS its storage is a **separate partition from Safari** — so Safari showing your
+latest deploy proves nothing about the icon on the home screen.
+
+Three things keep them in step, and none of them need you to remember anything:
+
+1. **The shell is served network-first.** `index.html`, `app.js`, `styles.css`,
+   `config.js` and `data/*.json` go to the network first on every launch, with
+   a 3.5-second timeout and the cache as fallback. So a deploy lands on the next
+   launch with a connection — *even if `sw.js` itself never changed*. Images are
+   served from cache instantly and refreshed in the background.
+2. **The worker is re-checked on every launch and every time the app returns to
+   the foreground**, not just on navigation, which an installed app may not do
+   for weeks.
+3. **When a new worker takes over, the app reloads itself** — except mid-exam,
+   where it waits until the exam is finished.
+
+There is also **Igenamiterere → Kuvugurura porogaramu** to force it by hand, and
+the running build id is shown at the bottom of settings so "did my update
+actually land?" is answerable on the phone.
+
+> This is why `build/4_service_worker.py` is no longer critical for ordinary
+> edits. Run it when you **add or remove files**, so the precache list matches
+> what is on disk. Content changes reach phones either way.
+
+**One-time catch-up for a phone already stuck on an old build:** it is still
+running the old cache-first worker, which has to be replaced before any of the
+above applies. Open the app with a connection, wait a few seconds, close it
+fully, and open it again. If it still looks stale, remove it from the home
+screen and add it once more — after that it keeps itself current.
+
 > **`PDF.pdf` is git-ignored** — the source book is stamped *RESTRICTED* on
 > every page and this repository is public. The app never reads it; it only
 > reads `data/questions.json`.
