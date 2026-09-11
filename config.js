@@ -1,7 +1,6 @@
 /* ── Kora Utware — settings you own ────────────────────────────────
  *
- *  EDIT THE FOUR MARKED LINES BELOW, then redeploy. Nothing else in the
- *  app needs changing to start taking payments.
+ *  Everything the app needs to take payments lives here.
  * ─────────────────────────────────────────────────────────────────── */
 
 window.KORA = {
@@ -11,27 +10,29 @@ window.KORA = {
   price: 1000,
   currency: 'RWF',
 
-  /* ← EDIT: the MTN MoMo number people send the 1,000 RWF to. */
-  momoNumber: '078 000 0000',
+  /* The MTN MoMo number people send the 1,000 RWF to. */
+  momoNumber: '0791 631 361',
 
-  /* ← EDIT: the name that shows on their MoMo confirmation, so buyers
-     can check they are paying the right person. */
-  momoName: 'KORA UTWARE',
+  /* The name that shows on their MoMo confirmation, so buyers can check
+     they are paying the right person. */
+  momoName: 'GACACA Godwin',
 
-  /* ← EDIT: your WhatsApp number in international form, digits only,
-     no + and no spaces. Rwanda numbers start 250.
+  /* WhatsApp, international form, digits only — no + and no spaces.
      Set to '' to hide the WhatsApp button. */
-  whatsapp: '250780000000',
+  whatsapp: '250791631361',
 
-  /* ← EDIT: the number people can SMS instead of WhatsApp.
-     Set to '' to hide the SMS button. */
-  sms: '+250780000000',
+  /* Number people can SMS instead of WhatsApp. '' hides the button. */
+  sms: '+250791631361',
 
   /* ---- free trial ----------------------------------------------- */
 
+  /* Deliberately enough to prove the app works, not enough to revise
+     with. One real exam is the hook; practice is the study tool people
+     pay for. Raising `practice` much above this makes wiping the app
+     and starting over a workable substitute for buying it. */
   trial: {
     exams: 1,        // full timed exams before the wall
-    practice: 15,    // practice questions before the wall
+    practice: 5,     // practice questions before the wall
   },
 
 };

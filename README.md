@@ -30,9 +30,13 @@ and [Rwanda National Police — PDL](https://police.gov.rw/services/testing-and-
 
 ### What a new user gets free
 
-One full timed exam, plus 15 practice questions. Both are set in
+One full timed exam, plus 5 practice questions — set in
 [`config.js`](config.js). After that the app asks for **1,000 RWF, once**, and
 everything is unlocked permanently on that phone.
+
+The split is deliberate: the exam is the hook, practice is the product. Raising
+the practice allowance much above this starts to make wiping the app and
+starting again a workable substitute for buying it.
 
 The pitch appears at the two moments that convert: on the **result screen**,
 right after they see their score and know whether they are ready, and as a
@@ -79,32 +83,71 @@ nobody mistypes), and each guess costs **150,000 PBKDF2-SHA256 iterations**.
 Guessing is therefore impractical, while a genuine unlock still takes a
 fraction of a second on a phone.
 
-### What this design does *not* do — read this before pricing
+### Stopping people from farming the free trial
 
-Because verification is offline, these are real and unavoidable without a server:
+The obvious worry: why pay 1,000 RWF if you can clear the app and get another
+free exam? Here is what is actually true, and what the app does about it.
+
+**Blocking by IP address does not work, and would cost you real sales.** Two
+reasons. First, a static site has no server to see an IP — you would have to
+add a backend, which is the thing you are trying to avoid. Second and worse:
+nearly every phone on MTN and Airtel Rwanda sits behind carrier-grade NAT, so
+thousands of unrelated subscribers share one public IP. Blocking "the IP that
+already had a trial" would lock out a large block of genuine buyers who never
+touched the app. It is the one approach that should be ruled out.
+
+**What the app does instead — three stores that must agree.** The trial
+counters and the licence are mirrored into `localStorage`, IndexedDB and Cache
+Storage, and merged on every start, always keeping the *higher* usage count.
+So:
+
+- clearing any *one* of them does not restore the trial
+- editing the counters back down in one store is overridden by the others
+- the app also calls `navigator.storage.persist()` so the browser stops
+  evicting it on its own
+
+This kills the casual reset, which is the one that actually happens — someone
+tapping "clear cache" or reinstalling the home-screen shortcut. It is verified
+by a test that wipes each store in turn and checks the trial stays spent.
+
+**A deliberate "clear site data" still resets it, and nothing client-side can
+stop that.** Not this app, not any offline web app. The only real fixes are
+accounts (sign in with a phone number or Google) or a server that counts
+redemptions — both of which mean running a service, handling logins, and losing
+the "works with no internet" property that makes this app worth paying for.
+
+**So the design leans on making a reset not worth doing:**
+
+- The free tier is one exam plus 5 practice questions — enough to prove the app
+  is real, useless as a way to revise. The 398-question practice bank and the
+  mistake tracker, which are what you actually study with, are behind the wall.
+- A reset destroys all progress: exam history, readiness score, and the list of
+  questions they keep getting wrong. Someone farming the trial is re-taking
+  random 20-question exams with no memory between them — more effort than
+  1,000 RWF is worth, and a worse way to prepare.
+
+If it ever needs to be airtight, the upgrade is one serverless endpoint that
+marks a code used on first redemption; `checkCode` in `app.js` is the only
+function that would change.
+
+### Two other limits worth knowing
 
 - **A code works on more than one phone.** Nothing can phone home to say it was
-  already used. The `issued_to` column is your defence: if a code spreads, you
-  know whose it was.
-- **Clearing the app's data resets the free trial.** Anyone who knows to clear
-  site data, or uses a private window, gets another free exam. The trial state
-  is written to two separate keys so a partial clear doesn't reset it, but a
-  full clear will.
+  already redeemed. The `issued_to` column in the CSV is your defence: if a
+  code spreads, you know whose it was and can stop selling to them.
 - **The question bank is public** once deployed — it has to be, for the app to
   work offline. What you are selling is the packaged, working exam simulator,
   not secret content.
 
-For the price point and the audience this is the right trade. If it ever needs
-to be airtight, the upgrade is a small serverless endpoint that marks a code
-used on first redemption — the client code is already structured for it
-(`checkCode` in `app.js` is the only thing that would change).
+Buyers can see their own code under **Igenamiterere → Kode yawe** and copy it,
+so if a phone is ever wiped or replaced they can restore the unlock themselves
+without contacting you.
 
 ### Setting it up
 
-Edit the four marked lines in [`config.js`](config.js) — your MoMo number, the
-name buyers will see on their confirmation, your WhatsApp number, your SMS
-number — then redeploy. Nothing else needs changing. Until you do, the paywall
-shows a placeholder number.
+[`config.js`](config.js) is configured for **GACACA Godwin, 0791 631 361**
+(MoMo, WhatsApp and SMS all on that number). Change it there if the number ever
+changes; nothing else in the app needs touching.
 
 ---
 

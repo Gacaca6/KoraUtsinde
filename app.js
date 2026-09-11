@@ -43,21 +43,110 @@ let byId = new Map();
 let stats = load(KEY.stats, { attempts: [], perQ: {} });
 let prefs = load(KEY.prefs, { duration: 20, warn: true });
 
-/* ── entitlement ───────────────────────────────────────────────────── */
-const TRIAL = Object.assign({ exams: 1, practice: 15 }, CFG.trial || {});
+/* ── entitlement ─────────────────────────────────────────────────────
+   The licence and the trial counters are mirrored into three
+   independent stores — localStorage, IndexedDB and Cache Storage — and
+   merged on every start. Two consequences:
 
-function loadEnt() {
-  const a = load(KEY.ent, null);
-  const b = load(KEY.entBak, null);
-  // a paid licence in either slot wins — survives a partially cleared store
-  if (a && b) return (b.paid && !a.paid) ? b : a;
-  return a || b || { paid: false, code: null, at: null, exams: 0, practice: 0 };
+   • A paid licence survives anything short of a full wipe, so buyers
+     don't silently lose what they paid for.
+   • The merge always keeps the HIGHER usage count, so clearing one
+     store (or one of them being evicted) can never hand out a second
+     free trial.
+
+   A deliberate "clear site data" still resets everything. Nothing
+   client-side survives that — see the README for why, and for what the
+   alternatives actually cost.
+   ------------------------------------------------------------------ */
+const TRIAL = Object.assign({ exams: 1, practice: 5 }, CFG.trial || {});
+const BLANK_ENT = { paid: false, code: null, at: null, exams: 0, practice: 0 };
+const VAULT_CACHE = 'kora-vault';
+const VAULT_URL = 'vault/entitlement.json';
+
+function mergeEnt(a, b) {
+  if (!a) return b ? { ...b } : { ...BLANK_ENT };
+  if (!b) return { ...a };
+  const paid = !!(a.paid || b.paid);
+  const src = a.paid ? a : (b.paid ? b : a);
+  return {
+    paid,
+    code: paid ? (src.code || a.code || b.code || null) : null,
+    at: paid ? (src.at || a.at || b.at || null) : null,
+    exams: Math.max(a.exams || 0, b.exams || 0),
+    practice: Math.max(a.practice || 0, b.practice || 0),
+  };
 }
-let ent = loadEnt();
+
+function idbTxn(mode, fn) {
+  return new Promise(resolve => {
+    let req;
+    try { req = indexedDB.open('kora-utware', 1); } catch { return resolve(null); }
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains('ent')) db.createObjectStore('ent');
+    };
+    req.onerror = () => resolve(null);
+    req.onblocked = () => resolve(null);
+    req.onsuccess = () => {
+      const db = req.result;
+      let out = null;
+      try {
+        const tx = db.transaction('ent', mode);
+        const r = fn(tx.objectStore('ent'));
+        if (r) r.onsuccess = () => { out = r.result; };
+        tx.oncomplete = () => { db.close(); resolve(out); };
+        tx.onerror = () => { db.close(); resolve(null); };
+        tx.onabort = () => { db.close(); resolve(null); };
+      } catch { db.close(); resolve(null); }
+    };
+  });
+}
+const idbGet = () => idbTxn('readonly', s => s.get('ent'));
+const idbSet = v => idbTxn('readwrite', s => s.put(v, 'ent'));
+
+async function cacheGet() {
+  try {
+    const c = await caches.open(VAULT_CACHE);
+    const r = await c.match(VAULT_URL);
+    return r ? await r.json() : null;
+  } catch { return null; }
+}
+async function cacheSet(v) {
+  try {
+    const c = await caches.open(VAULT_CACHE);
+    await c.put(VAULT_URL, new Response(JSON.stringify(v),
+      { headers: { 'Content-Type': 'application/json' } }));
+  } catch { /* storage disabled */ }
+}
+
+let ent = mergeEnt(load(KEY.ent, null), load(KEY.entBak, null)) || { ...BLANK_ENT };
 
 function saveEnt() {
   save(KEY.ent, ent);
   save(KEY.entBak, ent);
+  idbSet(ent); cacheSet(ent);        // fire and forget; never blocks the UI
+}
+
+/** Fold in whatever the slower stores remember. Bounded so a wedged
+ *  IndexedDB can't hold up the splash screen. */
+async function hydrateEnt() {
+  const slow = Promise.all([idbGet(), cacheGet()])
+    .then(([a, b]) => mergeEnt(a, b)).catch(() => null);
+  const remote = await Promise.race([slow, new Promise(r => setTimeout(() => r(null), 2500))]);
+  ent = mergeEnt(ent, remote);
+  saveEnt();                         // converge every store on the merged truth
+}
+
+/** Ask the browser not to evict us. Safari drops script-writable
+ *  storage after ~7 idle days unless the app is on the home screen,
+ *  which would otherwise cost a paying user their unlock. */
+async function askPersistence() {
+  try {
+    if (navigator.storage && navigator.storage.persist
+        && !(await navigator.storage.persisted())) {
+      await navigator.storage.persist();
+    }
+  } catch { /* not supported */ }
 }
 
 const isPaid       = () => !!ent.paid;
@@ -434,6 +523,7 @@ async function submitCode() {
     ent.code = res.code;
     ent.at = Date.now();
     saveEnt();
+    askPersistence();
     codeMsg('ok', 'Byakunze! Kora Utware ifunguwe burundu.');
     if (navigator.vibrate) { try { navigator.vibrate([40, 50, 90]); } catch {} }
     setTimeout(() => {
@@ -894,9 +984,17 @@ function renderHome() {
     a.slice(0, 2).forEach(att => hist.append(histRow(att)));
   }
 
+  // A buyer who ever loses their storage can restore the unlock themselves,
+  // so long as they still have the code. Show it, don't hide it.
+  const lic = $('#licence-row');
+  lic.classList.toggle('hidden', !(isPaid() && ent.code));
+  if (isPaid() && ent.code) {
+    $('#licence-value').textContent = `${ent.code.slice(0, 4)}-${ent.code.slice(4)}`;
+  }
+
   $('#fineprint').innerHTML = isPaid()
-    ? `Ibibazo <b>${BANK.length}</b> byakuwe mu gitabo cya provisoire. Ifunguwe burundu${
-        ent.code ? ` · kode …${ent.code.slice(-4)}` : ''}.`
+    ? `Ibibazo <b>${BANK.length}</b> byakuwe mu gitabo cya provisoire.`
+      + ` Bika kode yawe ahantu hizewe — niyo ifungura iyi terefone burundu.`
     : `Ibibazo <b>${BANK.length}</b> byakuwe mu gitabo cya provisoire. Porogaramu ikora nta internet.`;
 
   // unfinished exam
@@ -1061,6 +1159,14 @@ function wire() {
     save(KEY.prefs, prefs);
     renderHome();
   });
+  $('#licence-code').addEventListener('click', async () => {
+    if (!ent.code) return;
+    try {
+      await navigator.clipboard.writeText(ent.code);
+      toast('Kode yakoporowe.');
+    } catch { toast(ent.code); }
+  });
+
   $('#set-warn').checked = !!prefs.warn;
   $('#set-warn').addEventListener('change', e => {
     prefs.warn = e.target.checked;
@@ -1100,6 +1206,8 @@ async function boot() {
     const data = await (await fetch('data/questions.json')).json();
     BANK = data.questions;
     byId = new Map(BANK.map(q => [q.id, q]));
+    await hydrateEnt();
+    askPersistence();
   } catch {
     $('#boot').innerHTML =
       '<p style="padding:24px;text-align:center">Ibibazo ntibyaboneka.<br>Ongera ufungure porogaramu.</p>';
