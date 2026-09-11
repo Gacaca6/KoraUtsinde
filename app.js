@@ -266,6 +266,8 @@ function goHome() {
   screenStack = ['home'];
   show('home', false);
   renderHome();
+  // an update that arrived mid-exam waits until it is safe to apply
+  if (reloadPending) applyUpdateNow();
 }
 
 /* ── question rendering ────────────────────────────────────────────── */
@@ -1105,9 +1107,14 @@ function renderSettings() {
   }
 
   $('#set-contact').classList.toggle('hidden', !CFG.whatsapp && !CFG.sms);
+
+  // The build id makes "did my update actually land?" answerable on the
+  // phone itself, instead of guessing.
+  if (swReg && swReg.active && !swVersion) swReg.active.postMessage({ type: 'version' });
   $('#settings-info').innerHTML =
     `Kora Utware · ibibazo <b>${BANK.length}</b> byo mu gitabo cya provisoire`
-    + (CFG.momoName ? ` · ${CFG.momoName}` : '');
+    + (CFG.momoName ? ` · ${CFG.momoName}` : '')
+    + (swVersion ? `<br>Verisiyo <b>${swVersion}</b>` : '');
 }
 
 async function clearHistory() {
@@ -1247,13 +1254,18 @@ function wire() {
     const end = $('#update-state');
     const restore = end.innerHTML;
     end.textContent = 'Turareba…';
+    if (!navigator.onLine) {
+      end.innerHTML = restore;
+      toast('Nta internet. Gerageza nyuma.');
+      return;
+    }
     try {
-      const reg = await navigator.serviceWorker.getRegistration();
-      if (!reg) throw new Error('no worker');
-      await reg.update();
-      if (reg.active) reg.active.postMessage({ type: 'topup' });
+      await checkForUpdate(true);
+      if (swReg && swReg.active) swReg.active.postMessage({ type: 'topup' });
+      // Reload either way: with a network-first shell this alone pulls down
+      // whatever changed, even when the worker itself is unchanged.
       end.textContent = 'Byavuguruwe';
-      setTimeout(() => location.reload(), 900);
+      setTimeout(applyUpdateNow, 800);
     } catch {
       end.innerHTML = restore;
       toast('Ntibishobotse. Genzura internet.');
@@ -1316,6 +1328,79 @@ function wire() {
   });
 }
 
+/* ── keeping an installed app current ────────────────────────────────
+   An installed PWA can sit on an old build indefinitely: it may never
+   do a fresh navigation, and on iOS its storage is a separate partition
+   from Safari, so the browser looking up to date proves nothing. So we
+   ask the browser to re-check the worker on every launch and every time
+   the app comes back to the foreground, and reload once a new one takes
+   over — but never in the middle of an exam.
+   ------------------------------------------------------------------ */
+let swReg = null;
+let reloadPending = false;
+let reloading = false;
+let lastUpdateCheck = 0;
+let swVersion = '';
+
+function applyUpdateNow() {
+  if (reloading) return;
+  reloading = true;
+  location.reload();
+}
+
+function onNewVersionReady() {
+  if (exam) {                       // never yank the page mid-exam
+    reloadPending = true;
+    return;
+  }
+  toast('Porogaramu iravugururwa…');
+  setTimeout(applyUpdateNow, 800);
+}
+
+async function checkForUpdate(force) {
+  if (!('serviceWorker' in navigator)) return;
+  if (!force && Date.now() - lastUpdateCheck < 60000) return;
+  lastUpdateCheck = Date.now();
+  try {
+    if (!swReg) swReg = await navigator.serviceWorker.getRegistration();
+    if (swReg) await swReg.update();
+  } catch { /* offline, or the check was refused */ }
+}
+
+function registerWorker() {
+  if (!('serviceWorker' in navigator)) return;
+
+  // A first install also fires controllerchange, but that page is already
+  // running current code — only a REPLACEMENT means "reload".
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (hadController) onNewVersionReady();
+  });
+
+  navigator.serviceWorker.addEventListener('message', e => {
+    if (e.data && e.data.type === 'version') {
+      swVersion = String(e.data.cache || '').replace('kora-utware-', '');
+      if ($('#screen-settings').classList.contains('active')) renderSettings();
+    }
+  });
+
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    swReg = reg;
+    if (!navigator.onLine) return;
+    checkForUpdate(true);
+    if (reg.active) {
+      // fill any gaps left by a patchy first load, and learn the build id
+      reg.active.postMessage({ type: 'topup' });
+      reg.active.postMessage({ type: 'version' });
+    }
+  }).catch(() => {});
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && navigator.onLine) checkForUpdate();
+  });
+  window.addEventListener('online', () => checkForUpdate(true));
+}
+
 /* ── install prompt ──────────────────────────────────────────────────
    Captured here, offered from Igenamiterere → "Shyira kuri telefone".
    It is deliberately not in the header: brand + licence pill + gear
@@ -1353,15 +1438,7 @@ async function boot() {
     canExam() ? newExam() : openPaywall('exam');
   }
 
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').then(async () => {
-      // If a previous visit cached only part of the app (patchy signal),
-      // ask the worker to fill the gaps while we still have a connection.
-      if (!navigator.onLine) return;
-      const reg = await navigator.serviceWorker.ready;
-      reg.active && reg.active.postMessage({ type: 'topup' });
-    }).catch(() => {});
-  }
+  registerWorker();
 }
 
 boot();
