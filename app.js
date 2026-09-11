@@ -41,7 +41,27 @@ const save = (key, val) => {
 let BANK = [];
 let byId = new Map();
 let stats = load(KEY.stats, { attempts: [], perQ: {} });
-let prefs = load(KEY.prefs, { duration: 20, warn: true });
+let prefs = Object.assign({ duration: 20, warn: true, theme: 'system' },
+                          load(KEY.prefs, null) || {});
+
+/* ── appearance ────────────────────────────────────────────────────── */
+const THEMES = ['system', 'light', 'dark'];
+
+function applyTheme(t) {
+  const root = document.documentElement;
+  if (t === 'light' || t === 'dark') root.setAttribute('data-theme', t);
+  else root.removeAttribute('data-theme');
+  syncThemeColor();
+}
+
+/** Keep the browser/status-bar tint in step with what's on screen. */
+function syncThemeColor() {
+  const set = document.documentElement.getAttribute('data-theme');
+  const dark = set === 'dark'
+    || (!set && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', dark ? '#0D1113' : '#F6F4EF');
+}
 
 /* ── entitlement ─────────────────────────────────────────────────────
    The licence and the trial counters are mirrored into three
@@ -205,13 +225,15 @@ function toast(msg) {
   toastTimer = setTimeout(() => el.classList.add('hidden'), 2400);
 }
 
+/** `no: null` turns this into a plain acknowledgement dialog. */
 function confirmAsk(title, text, yes = 'Yego', no = 'Oya') {
   return new Promise(resolve => {
     const sheet = $('#confirm');
     $('#cf-title').textContent = title;
     $('#cf-text').textContent = text;
     $('#cf-yes').textContent = yes;
-    $('#cf-no').textContent = no;
+    $('#cf-no').textContent = no || '';
+    $('#cf-no').classList.toggle('hidden', no === null);
     sheet.classList.remove('hidden');
     const done = ok => {
       sheet.classList.add('hidden');
@@ -434,11 +456,18 @@ async function copyMomo() {
   }
 }
 
-function openWhatsApp() {
+function openWhatsApp(text) {
   if (!CFG.whatsapp) return;
   const url = `https://wa.me/${String(CFG.whatsapp).replace(/\D/g, '')}`
-            + `?text=${encodeURIComponent(payMessage())}`;
+            + `?text=${encodeURIComponent(text || payMessage())}`;
   window.open(url, '_blank', 'noopener');
+}
+
+function openSms(text) {
+  if (!CFG.sms) return;
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  location.href = `sms:${CFG.sms}${isIOS ? '&' : '?'}body=`
+                + encodeURIComponent(text || payMessage());
 }
 
 /* ── unlock codes ──────────────────────────────────────────────────── */
@@ -984,14 +1013,6 @@ function renderHome() {
     a.slice(0, 2).forEach(att => hist.append(histRow(att)));
   }
 
-  // A buyer who ever loses their storage can restore the unlock themselves,
-  // so long as they still have the code. Show it, don't hide it.
-  const lic = $('#licence-row');
-  lic.classList.toggle('hidden', !(isPaid() && ent.code));
-  if (isPaid() && ent.code) {
-    $('#licence-value').textContent = `${ent.code.slice(0, 4)}-${ent.code.slice(4)}`;
-  }
-
   $('#fineprint').innerHTML = isPaid()
     ? `Ibibazo <b>${BANK.length}</b> byakuwe mu gitabo cya provisoire.`
       + ` Bika kode yawe ahantu hizewe — niyo ifungura iyi terefone burundu.`
@@ -1030,6 +1051,73 @@ function histRow(att) {
   row.append(sc, meta, icon('i-chev', 17));
   row.addEventListener('click', () => showReview(att, fmtDate(att.date)));
   return row;
+}
+
+/* ══ SETTINGS ══════════════════════════════════════════════════════ */
+function renderSettings() {
+  const t = THEMES.includes(prefs.theme) ? prefs.theme : 'system';
+  $$('[data-theme-opt]').forEach(b => b.classList.toggle('on', b.dataset.themeOpt === t));
+
+  const box = $('#licence-box');
+  box.innerHTML = '';
+  if (isPaid()) {
+    // A buyer who ever loses their storage can restore the unlock
+    // themselves, so long as they still have the code. Show it.
+    const card = document.createElement('div');
+    card.className = 'licence-card';
+    const mark = document.createElement('span');
+    mark.className = 'lc-mark';
+    mark.append(icon('i-check', 20));
+    const body = document.createElement('div');
+    body.className = 'lc-body';
+    const strong = document.createElement('strong');
+    strong.textContent = ent.code
+      ? `${ent.code.slice(0, 4)}-${ent.code.slice(4)}` : 'Ifunguwe';
+    const sub = document.createElement('span');
+    sub.textContent = 'Burundu · bika iyi kode';
+    body.append(strong, sub);
+    card.append(mark, body);
+    if (ent.code) {
+      const copy = document.createElement('button');
+      copy.type = 'button';
+      copy.className = 'icon-btn';
+      copy.style.marginLeft = 'auto';
+      copy.setAttribute('aria-label', 'Koporora kode');
+      copy.append(icon('i-copy', 18));
+      copy.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(ent.code); toast('Kode yakoporowe.'); }
+        catch { toast(ent.code); }
+      });
+      card.append(copy);
+    }
+    box.append(card);
+  } else {
+    const p = document.createElement('p');
+    p.className = 'fineprint';
+    p.style.margin = '10px 0 12px';
+    p.textContent = `Bisigaye ku buntu: ikizamini ${examsLeft()}, ibibazo ${practiceLeft()}.`;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn-go btn-block';
+    btn.textContent = `Fungura burundu — ${fmtMoney(CFG.price || 1000)} ${CFG.currency || 'RWF'}`;
+    btn.addEventListener('click', () => openPaywall());
+    box.append(p, btn);
+  }
+
+  $('#set-contact').classList.toggle('hidden', !CFG.whatsapp && !CFG.sms);
+  $('#settings-info').innerHTML =
+    `Kora Utware · ibibazo <b>${BANK.length}</b> byo mu gitabo cya provisoire`
+    + (CFG.momoName ? ` · ${CFG.momoName}` : '');
+}
+
+async function clearHistory() {
+  if (!await confirmAsk('Siba amateka?',
+    "Ibizamini byose n'amakosa yawe bizasibwa burundu. Uburenganzira bwawe ntibuzasibwa.",
+    'Siba')) return;
+  stats = { attempts: [], perQ: {} };
+  save(KEY.stats, stats);
+  renderHome();
+  toast('Amateka yasibwe.');
 }
 
 function renderHistory() {
@@ -1101,13 +1189,8 @@ function wire() {
   $('#btn-home').addEventListener('click', goHome);
   $('#btn-history').addEventListener('click', renderHistory);
   $('#btn-clear').addEventListener('click', async () => {
-    if (await confirmAsk('Siba amateka?',
-      "Ibizamini byose n'amakosa yawe bizasibwa burundu. Uburenganzira bwawe ntibuzasibwa.", 'Siba')) {
-      stats = { attempts: [], perQ: {} };
-      save(KEY.stats, stats);
-      renderHistory();
-      renderHome();
-    }
+    await clearHistory();
+    renderHistory();
   });
 
   $$('[data-practice]').forEach(b =>
@@ -1125,9 +1208,65 @@ function wire() {
   // paywall
   $('#pay-dial').addEventListener('click', dialMomo);
   $('#pay-copy').addEventListener('click', copyMomo);
-  $('#pay-whatsapp').addEventListener('click', openWhatsApp);
+  $('#pay-whatsapp').addEventListener('click', () => openWhatsApp());
   $('#pay-unlock').addEventListener('click', openUnlock);
   $('#pay-back').addEventListener('click', back);
+
+  // settings
+  $('#btn-settings').addEventListener('click', () => {
+    renderSettings();
+    show('settings');
+  });
+
+  $$('[data-theme-opt]').forEach(b => b.addEventListener('click', () => {
+    prefs.theme = b.dataset.themeOpt;
+    save(KEY.prefs, prefs);
+    applyTheme(prefs.theme);
+    renderSettings();
+  }));
+  window.matchMedia('(prefers-color-scheme: dark)')
+    .addEventListener('change', syncThemeColor);
+
+  $('#set-install').addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      renderSettings();
+      return;
+    }
+    // iOS never fires beforeinstallprompt, so tell them where the button is
+    await confirmAsk('Shyira kuri telefone',
+      /iPad|iPhone|iPod/.test(navigator.userAgent)
+        ? 'Muri Safari, kanda ikimenyetso cyo gusangiza (↑) hepfo, uhitemo “Add to Home Screen”.'
+        : 'Muri Chrome, fungura menu (⋮) uhitemo “Install app” cyangwa “Add to Home screen”.',
+      'Sawa', null);
+  });
+
+  $('#set-update').addEventListener('click', async () => {
+    const end = $('#update-state');
+    const restore = end.innerHTML;
+    end.textContent = 'Turareba…';
+    try {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (!reg) throw new Error('no worker');
+      await reg.update();
+      if (reg.active) reg.active.postMessage({ type: 'topup' });
+      end.textContent = 'Byavuguruwe';
+      setTimeout(() => location.reload(), 900);
+    } catch {
+      end.innerHTML = restore;
+      toast('Ntibishobotse. Genzura internet.');
+    }
+  });
+
+  $('#set-contact').addEventListener('click', () => {
+    const msg = 'Muraho. Mfite ikibazo kuri Kora Utware:\n';
+    if (CFG.whatsapp) openWhatsApp(msg);
+    else if (CFG.sms) openSms(msg);
+  });
+
+  $('#set-clear').addEventListener('click', clearHistory);
 
   // unlock
   const input = $('#code-input');
@@ -1159,14 +1298,6 @@ function wire() {
     save(KEY.prefs, prefs);
     renderHome();
   });
-  $('#licence-code').addEventListener('click', async () => {
-    if (!ent.code) return;
-    try {
-      await navigator.clipboard.writeText(ent.code);
-      toast('Kode yakoporowe.');
-    } catch { toast(ent.code); }
-  });
-
   $('#set-warn').checked = !!prefs.warn;
   $('#set-warn').addEventListener('change', e => {
     prefs.warn = e.target.checked;
@@ -1185,19 +1316,15 @@ function wire() {
   });
 }
 
-/* ── install prompt ────────────────────────────────────────────────── */
+/* ── install prompt ──────────────────────────────────────────────────
+   Captured here, offered from Igenamiterere → "Shyira kuri telefone".
+   It is deliberately not in the header: brand + licence pill + gear
+   already fill a 375 px screen, and a fourth control pushed the page
+   into sideways scrolling. */
 let deferredPrompt = null;
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   deferredPrompt = e;
-  $('#btn-install').classList.remove('hidden');
-});
-$('#btn-install').addEventListener('click', async () => {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  await deferredPrompt.userChoice;
-  deferredPrompt = null;
-  $('#btn-install').classList.add('hidden');
 });
 
 /* ── boot ──────────────────────────────────────────────────────────── */
@@ -1215,6 +1342,7 @@ async function boot() {
   }
 
   wire();
+  applyTheme(prefs.theme);
   renderPayConfig();
   renderCodeBoxes();
   renderHome();

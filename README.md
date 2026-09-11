@@ -168,6 +168,20 @@ drops off the list once he answers it correctly again.
 bar chart of recent attempts, and a full history where any past exam can be
 reopened and reviewed question by question.
 
+**Igenamiterere (Settings)** — behind the gear in the top right:
+
+- **Imiterere** — light, dark, or follow the phone. The choice is applied
+  before first paint, so switching to dark doesn't flash white on launch.
+- **Ikizamini** — exam length (20 / 30 minutes / untimed) and the last-minute
+  warning.
+- **Uburenganzira** — the unlock button, or the buyer's own code with a copy
+  button once paid.
+- **Porogaramu** — install to the home screen (with written instructions on
+  iOS, which never fires an install event), force an update when a phone is
+  stuck on an old cached version, and a prefilled WhatsApp/SMS line for support.
+- **Siba amateka yose** — clears history and mistakes. It never touches the
+  licence.
+
 Every question shows its page number in the source book, so any answer can be
 checked against the original.
 
