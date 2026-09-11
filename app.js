@@ -1,24 +1,33 @@
-/* ── Kora Utware — ikizamini cya provisoire ────────────────────────
+/* ══ Kora Utware — ikizamini cya provisoire ═══════════════════════════
    Offline exam simulator built on the official provisoire question book.
    Exam rules: 20 random questions, 12/20 to pass, 20 minutes.
-   ─────────────────────────────────────────────────────────────────── */
+
+   Licensing: one free exam plus a handful of practice questions, then a
+   one-off payment unlocks everything for good. Codes are verified
+   offline against PBKDF2 hashes shipped in data/unlock.json — no
+   backend, no payment processor, works with no connection.
+   ═══════════════════════════════════════════════════════════════════ */
 
 'use strict';
 
+const CFG = window.KORA || {};
 const EXAM_SIZE = 20;
 const PASS_MARK = 12;
 const LETTERS = ['A', 'B', 'C', 'D'];
+const CODE_CHARS = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
 
 const KEY = {
   stats: 'kora.stats.v1',
   prefs: 'kora.prefs.v1',
-  exam: 'kora.exam.v1',
+  exam:  'kora.exam.v1',
+  ent:   'kora.ent.v1',
+  entBak:'kora.lic.v1',
 };
 
-const $ = (sel, root = document) => root.querySelector(sel);
-const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+const $  = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
-/* ── storage ─────────────────────────────────────────────────────── */
+/* ── storage ───────────────────────────────────────────────────────── */
 const load = (key, fallback) => {
   try {
     const raw = localStorage.getItem(key);
@@ -26,7 +35,7 @@ const load = (key, fallback) => {
   } catch { return fallback; }
 };
 const save = (key, val) => {
-  try { localStorage.setItem(key, JSON.stringify(val)); } catch { /* full / private mode */ }
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch { /* private mode */ }
 };
 
 let BANK = [];
@@ -34,7 +43,31 @@ let byId = new Map();
 let stats = load(KEY.stats, { attempts: [], perQ: {} });
 let prefs = load(KEY.prefs, { duration: 20, warn: true });
 
-/* ── helpers ─────────────────────────────────────────────────────── */
+/* ── entitlement ───────────────────────────────────────────────────── */
+const TRIAL = Object.assign({ exams: 1, practice: 15 }, CFG.trial || {});
+
+function loadEnt() {
+  const a = load(KEY.ent, null);
+  const b = load(KEY.entBak, null);
+  // a paid licence in either slot wins — survives a partially cleared store
+  if (a && b) return (b.paid && !a.paid) ? b : a;
+  return a || b || { paid: false, code: null, at: null, exams: 0, practice: 0 };
+}
+let ent = loadEnt();
+
+function saveEnt() {
+  save(KEY.ent, ent);
+  save(KEY.entBak, ent);
+}
+
+const isPaid       = () => !!ent.paid;
+const examsLeft    = () => Math.max(0, TRIAL.exams - (ent.exams || 0));
+const practiceLeft = () => Math.max(0, TRIAL.practice - (ent.practice || 0));
+const canExam      = () => isPaid() || examsLeft() > 0;
+const canPractice  = () => isPaid() || practiceLeft() > 0;
+const trialSpent   = () => !isPaid() && examsLeft() === 0 && practiceLeft() === 0;
+
+/* ── helpers ───────────────────────────────────────────────────────── */
 const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
 
 function shuffled(arr) {
@@ -48,17 +81,30 @@ function shuffled(arr) {
 
 function fmtClock(sec) {
   sec = Math.max(0, Math.round(sec));
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  return `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
+}
+
+function fmtMoney(n) {
+  return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
 function fmtDate(ts) {
   const d = new Date(ts);
   const day = ['Ku cyumweru', 'Kuwa mbere', 'Kuwa kabiri', 'Kuwa gatatu',
                'Kuwa kane', 'Kuwa gatanu', 'Kuwa gatandatu'][d.getDay()];
-  return `${day}, ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} · ${
+  return `${day} · ${d.getDate()}/${d.getMonth() + 1} · ${
     String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+function icon(id, size = 18) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('width', size);
+  svg.setAttribute('height', size);
+  svg.setAttribute('aria-hidden', 'true');
+  const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+  use.setAttribute('href', '#' + id);
+  svg.append(use);
+  return svg;
 }
 
 let toastTimer = null;
@@ -67,15 +113,16 @@ function toast(msg) {
   el.textContent = msg;
   el.classList.remove('hidden');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.add('hidden'), 2200);
+  toastTimer = setTimeout(() => el.classList.add('hidden'), 2400);
 }
 
-function confirmAsk(title, text, yes = 'Yego') {
+function confirmAsk(title, text, yes = 'Yego', no = 'Oya') {
   return new Promise(resolve => {
     const sheet = $('#confirm');
     $('#cf-title').textContent = title;
     $('#cf-text').textContent = text;
     $('#cf-yes').textContent = yes;
+    $('#cf-no').textContent = no;
     sheet.classList.remove('hidden');
     const done = ok => {
       sheet.classList.add('hidden');
@@ -87,7 +134,7 @@ function confirmAsk(title, text, yes = 'Yego') {
   });
 }
 
-/* ── router ──────────────────────────────────────────────────────── */
+/* ── router ────────────────────────────────────────────────────────── */
 let screenStack = ['home'];
 
 function show(name, push = true) {
@@ -100,8 +147,6 @@ function show(name, push = true) {
   window.scrollTo(0, 0);
 }
 
-/** Go back one screen. Routed through history so the Android back
- *  button and the in-app '‹' button behave identically. */
 function back() {
   if (screenStack.length > 1) history.back();
 }
@@ -112,7 +157,7 @@ function goHome() {
   renderHome();
 }
 
-/* ── question rendering ──────────────────────────────────────────── */
+/* ── question rendering ────────────────────────────────────────────── */
 function questionNode(q, opts = {}) {
   const { chosen = null, reveal = false, position = null, total = null,
           flagged = false, onPick = null, showHead = true } = opts;
@@ -129,8 +174,8 @@ function questionNode(q, opts = {}) {
     head.append(tag);
     if (flagged) {
       const f = document.createElement('span');
-      f.className = 'q-flagged';
-      f.textContent = '⚑ Wamenyesheje';
+      f.className = 'q-flag';
+      f.append(icon('i-flag', 13), document.createTextNode(' Wamenyesheje'));
       head.append(f);
     }
     wrap.append(head);
@@ -149,7 +194,6 @@ function questionNode(q, opts = {}) {
       img.className = 'q-img';
       img.src = src;
       img.alt = 'Ishusho y’ikibazo';
-      img.loading = 'eager';
       box.append(img);
     });
     wrap.append(box);
@@ -186,11 +230,11 @@ function questionNode(q, opts = {}) {
 
     btn.append(letter, body);
 
-    if (reveal) {
+    if (reveal && (i === q.a || chosen === i)) {
       const mark = document.createElement('span');
       mark.className = 'opt-mark';
-      if (i === q.a) mark.textContent = '✓';
-      else if (chosen === i) mark.textContent = '✕';
+      mark.style.color = i === q.a ? 'var(--go)' : 'var(--stop)';
+      mark.append(icon(i === q.a ? 'i-check' : 'i-cross', 17));
       btn.append(mark);
     }
 
@@ -207,12 +251,12 @@ function questionNode(q, opts = {}) {
   return wrap;
 }
 
-/* ── stats bookkeeping ───────────────────────────────────────────── */
+/* ── stats ─────────────────────────────────────────────────────────── */
 function recordAnswer(qid, correct) {
   const rec = stats.perQ[qid] || (stats.perQ[qid] = { seen: 0, wrong: 0 });
   rec.seen++;
   if (!correct) rec.wrong++;
-  else if (rec.wrong > 0) rec.wrong--;   // decays as he gets it right again
+  else if (rec.wrong > 0) rec.wrong--;
   save(KEY.stats, stats);
 }
 
@@ -222,22 +266,219 @@ const wrongIds = () => Object.entries(stats.perQ)
   .map(([id]) => Number(id))
   .filter(id => byId.has(id));
 
-/* ═══════════════════════ EXAM ════════════════════════════════════ */
+/* ══ PAYWALL ═══════════════════════════════════════════════════════ */
+function upsellNode(where) {
+  const box = document.createElement('div');
+  box.className = 'upsell';
+
+  const head = document.createElement('div');
+  head.className = 'upsell-head';
+  head.append(icon('i-lock', 19));
+  const strong = document.createElement('strong');
+  strong.textContent = where === 'result' ? "Ikizamini cy'ubuntu kirangiye"
+                                          : 'Fungura ibibazo byose';
+  head.append(strong);
+
+  const p = document.createElement('p');
+  p.innerHTML = `Fungura ibibazo <b>${BANK.length}</b> n'ibizamini bitagira umupaka ku <b>${
+    fmtMoney(CFG.price || 1000)} ${CFG.currency || 'RWF'}</b> rimwe gusa.`;
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'btn btn-bright btn-block';
+  btn.textContent = 'Fungura burundu';
+  btn.addEventListener('click', () => openPaywall());
+
+  box.append(head, p, btn);
+  return box;
+}
+
+function openPaywall(reason) {
+  const titles = {
+    exam: "Ikizamini cy'ubuntu kirangiye",
+    practice: "Kwimenyereza kw'ubuntu kurangiye",
+  };
+  $('#pay-title').textContent = titles[reason] || "Fungura Kora Utware burundu";
+  $('#pay-sub').textContent = reason === 'practice'
+    ? 'Wakoresheje ibibazo byawe by’ubuntu. Ishyura rimwe gusa ukomeze wimenyereze ibibazo byose.'
+    : 'Ishyura rimwe gusa ukomeze wimenyereze ibibazo byose kugeza utsinze provisoire.';
+  show('paywall');
+}
+
+function renderPayConfig() {
+  const price = fmtMoney(CFG.price || 1000);
+  const cur = CFG.currency || 'RWF';
+  $('#pay-price').textContent = price;
+  $('#pay-cur').textContent = cur;
+  $('#pay-amount').textContent = `${price} ${cur}`;
+  $('#pay-momo').textContent = CFG.momoNumber || '—';
+  $('#pay-count').textContent = BANK.length;
+
+  $('#pay-whatsapp').classList.toggle('hidden', !CFG.whatsapp);
+  const help = CFG.whatsapp
+    ? `Ntabwo urabona kode? Ohereza ubutumwa kuri WhatsApp hamwe na nimero ya transaction yawe.`
+    : `Ntabwo urabona kode? Ohereza ubutumwa hamwe na nimero ya transaction yawe.`;
+  $('#unlock-help').textContent = help;
+}
+
+function payMessage() {
+  return `Muraho. Nishyuye ${fmtMoney(CFG.price || 1000)} ${CFG.currency || 'RWF'} `
+       + `kuri Kora Utware.\nNimero ya transaction: \nIzina: `;
+}
+
+function dialMomo() {
+  const digits = String(CFG.momoNumber || '').replace(/\D/g, '');
+  if (!digits) { toast('Nimero ya MoMo ntiyashyizweho.'); return; }
+  // MTN Rwanda send-money USSD; # must be percent-encoded in a tel: URI
+  const ussd = `*182*1*1*${digits}*${CFG.price || 1000}%23`;
+  location.href = 'tel:' + ussd;
+  setTimeout(() => toast('Niba dialer itafunguka, koporora nimero uyandike wenyine.'), 1400);
+}
+
+async function copyMomo() {
+  const n = String(CFG.momoNumber || '');
+  try {
+    await navigator.clipboard.writeText(n.replace(/\s/g, ''));
+    toast('Nimero yakoporowe.');
+  } catch {
+    toast(n);
+  }
+}
+
+function openWhatsApp() {
+  if (!CFG.whatsapp) return;
+  const url = `https://wa.me/${String(CFG.whatsapp).replace(/\D/g, '')}`
+            + `?text=${encodeURIComponent(payMessage())}`;
+  window.open(url, '_blank', 'noopener');
+}
+
+/* ── unlock codes ──────────────────────────────────────────────────── */
+let unlockManifest = null;
+
+async function getManifest() {
+  if (unlockManifest) return unlockManifest;
+  const res = await fetch('data/unlock.json');
+  unlockManifest = await res.json();
+  return unlockManifest;
+}
+
+const normalizeCode = raw => String(raw || '').toUpperCase().replace(/[^0-9A-Z]/g, '');
+
+async function pbkdf2Hex(pass, salt, iterations, bytes) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(pass), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt: enc.encode(salt), iterations, hash: 'SHA-256' }, key, bytes * 8);
+  return [...new Uint8Array(bits)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function checkCode(raw) {
+  const code = normalizeCode(raw);
+  const man = await getManifest();
+  if (code.length !== man.len) return { ok: false, why: 'length' };
+  if ([...code].some(ch => !CODE_CHARS.includes(ch))) return { ok: false, why: 'chars' };
+  if (!crypto.subtle) return { ok: false, why: 'crypto' };
+  const hex = await pbkdf2Hex(code, man.salt, man.iter, 8);
+  return { ok: man.hashes.includes(hex), why: 'no-match', code };
+}
+
+let codeValue = '';
+
+function renderCodeBoxes() {
+  const box = $('#code-boxes');
+  box.innerHTML = '';
+  for (let i = 0; i < 8; i++) {
+    if (i === 4) {
+      const dash = document.createElement('span');
+      dash.className = 'code-dash';
+      box.append(dash);
+    }
+    const cell = document.createElement('span');
+    cell.className = 'code-box';
+    if (codeValue[i]) { cell.textContent = codeValue[i]; cell.classList.add('filled'); }
+    else if (i === codeValue.length) cell.classList.add('here');
+    box.append(cell);
+  }
+  $('#code-submit').disabled = codeValue.length !== 8;
+}
+
+function codeMsg(kind, text) {
+  const el = $('#code-msg');
+  if (!kind) { el.className = 'hidden'; el.textContent = ''; return; }
+  el.className = `feedback ${kind === 'ok' ? 'ok' : 'bad'}`;
+  el.innerHTML = '';
+  el.append(icon(kind === 'ok' ? 'i-check' : 'i-alert', 18));
+  const span = document.createElement('span');
+  span.textContent = text;
+  el.append(span);
+}
+
+async function submitCode() {
+  const btn = $('#code-submit');
+  btn.disabled = true;
+  btn.textContent = 'Turimo kugenzura…';
+  codeMsg(null);
+
+  let res;
+  try {
+    res = await checkCode(codeValue);
+  } catch {
+    res = { ok: false, why: 'crypto' };
+  }
+
+  btn.textContent = 'Fungura';
+  btn.disabled = codeValue.length !== 8;
+
+  if (res.ok) {
+    ent.paid = true;
+    ent.code = res.code;
+    ent.at = Date.now();
+    saveEnt();
+    codeMsg('ok', 'Byakunze! Kora Utware ifunguwe burundu.');
+    if (navigator.vibrate) { try { navigator.vibrate([40, 50, 90]); } catch {} }
+    setTimeout(() => {
+      toast('Ifunguwe burundu. Urakoze!');
+      goHome();
+    }, 1100);
+    return;
+  }
+
+  $('#code-wrap').classList.add('code-bad');
+  setTimeout(() => $('#code-wrap').classList.remove('code-bad'), 1200);
+
+  if (res.why === 'chars') {
+    codeMsg('bad', 'Iyi kode irimo inyuguti zitemewe. Kode ntigira 0, O, 1, I cyangwa L.');
+  } else if (res.why === 'crypto') {
+    codeMsg('bad', 'Ntibishoboka kugenzura kode kuri iyi terefone. Gerageza ufungure porogaramu ukoresheje https.');
+  } else {
+    codeMsg('bad', 'Iyi kode ntabwo ariyo. Genzura neza inyuguti, cyangwa uduhamagare.');
+  }
+}
+
+function openUnlock() {
+  codeValue = '';
+  renderCodeBoxes();
+  codeMsg(null);
+  show('unlock');
+  setTimeout(() => $('#code-input').focus(), 250);
+}
+
+/* ══ EXAM ══════════════════════════════════════════════════════════ */
 let exam = null;
 let tick = null;
 
 function newExam() {
+  if (!canExam()) { openPaywall('exam'); return; }
   const picked = shuffled(BANK).slice(0, Math.min(EXAM_SIZE, BANK.length));
   const mins = Number(prefs.duration) || 0;
   exam = {
     ids: picked.map(q => q.id),
-    answers: {},
-    flags: [],
-    idx: 0,
+    answers: {}, flags: [], idx: 0,
     startedAt: Date.now(),
     duration: mins * 60,
     endsAt: mins ? Date.now() + mins * 60000 : 0,
     warned: false,
+    counted: false,
   };
   save(KEY.exam, exam);
   show('exam');
@@ -252,7 +493,7 @@ function resumeExam(saved) {
   startTimer();
 }
 
-function examQuestion(i = exam.idx) { return byId.get(exam.ids[i]); }
+const examQuestion = (i = exam.idx) => byId.get(exam.ids[i]);
 
 function renderExam() {
   const q = examQuestion();
@@ -260,8 +501,8 @@ function renderExam() {
   body.innerHTML = '';
   body.append(questionNode(q, {
     chosen: exam.answers[q.id] ?? null,
-    position: exam.idx + 1,
-    total: exam.ids.length,
+    // the command bar already carries "IKIBAZO n / 20", so the chip
+    // here shows what kind of question it is instead
     flagged: exam.flags.includes(q.id),
     onPick: i => {
       exam.answers[q.id] = i;
@@ -271,12 +512,14 @@ function renderExam() {
     },
   }));
 
+  const blank = exam.ids.filter(id => exam.answers[id] === undefined).length;
   $('#ex-pos').textContent = exam.idx + 1;
   $('#ex-total').textContent = exam.ids.length;
+  $('#ex-left').textContent = blank ? `${blank} utarasubiza` : 'byose wabisubije';
   $('#ex-pbar').style.width = `${((exam.idx + 1) / exam.ids.length) * 100}%`;
   $('#btn-prev').disabled = exam.idx === 0;
-  $('#btn-flag').classList.toggle('on', exam.flags.includes(q.id));
-  $('#btn-next').textContent = exam.idx === exam.ids.length - 1 ? 'Ohereza' : 'Komeza ›';
+  $('#btn-flag').classList.toggle('flagged', exam.flags.includes(q.id));
+  $('#btn-next').textContent = exam.idx === exam.ids.length - 1 ? 'Ohereza' : 'Komeza';
 }
 
 function move(delta) {
@@ -296,7 +539,7 @@ function startTimer() {
 function updateTimer() {
   if (!exam) return;
   const el = $('#ex-timer');
-  if (!exam.endsAt) {                                   // no time limit
+  if (!exam.endsAt) {
     el.textContent = fmtClock((Date.now() - exam.startedAt) / 1000);
     return;
   }
@@ -308,7 +551,7 @@ function updateTimer() {
     exam.warned = true;
     save(KEY.exam, exam);
     toast('Hasigaye umunota umwe!');
-    try { navigator.vibrate?.([120, 60, 120]); } catch { /* not allowed yet */ }
+    if (navigator.vibrate) { try { navigator.vibrate([120, 60, 120]); } catch {} }
   }
   if (left <= 0) {
     clearInterval(tick);
@@ -360,7 +603,6 @@ function finishExam(timedOut) {
   });
 
   const score = detail.filter(d => d.correct).length;
-  const blank = detail.filter(d => d.chosen === null).length;
   const seconds = Math.round((Date.now() - exam.startedAt) / 1000);
   const attempt = {
     date: Date.now(), score, total: exam.ids.length,
@@ -371,66 +613,77 @@ function finishExam(timedOut) {
   stats.attempts = stats.attempts.slice(0, 60);
   save(KEY.stats, stats);
 
-  localStorage.removeItem(KEY.exam);
-  const finished = exam;
-  exam = null;
+  if (!isPaid() && !exam.counted) {
+    ent.exams = (ent.exams || 0) + 1;
+    saveEnt();
+  }
 
-  showResult(attempt, finished, timedOut);
+  localStorage.removeItem(KEY.exam);
+  exam = null;
+  showResult(attempt, timedOut);
 }
 
-/* ── result ──────────────────────────────────────────────────────── */
+/* ── result ────────────────────────────────────────────────────────── */
 let lastAttempt = null;
 
-function showResult(attempt, finished, timedOut) {
+function showResult(attempt, timedOut) {
   lastAttempt = attempt;
   const pass = attempt.passed;
-  const v = $('#verdict');
-  v.className = `verdict ${pass ? 'pass' : 'fail'}`;
+  $('#verdict').className = `verdict ${pass ? 'pass' : 'fail'}`;
+  $('#verdict-mark').classList.toggle('hidden', !pass);
   $('#rs-score').textContent = attempt.score;
   $('#rs-title').textContent = pass ? 'Watsinze!' : 'Ntabwo watsinze';
+
+  const gap = PASS_MARK - attempt.score;
   $('#rs-sub').textContent = timedOut
     ? `Igihe cyarangiye. Amanota yo gutsinda ni ${PASS_MARK}/20.`
     : pass
-      ? `Warenze amanota yo gutsinda (${PASS_MARK}/20). Komeza gutyo!`
-      : `Ukeneye nibura ${PASS_MARK}/20. Ongera wimenyereze hanyuma ugerageze.`;
+      ? `Warenze amanota yo gutsinda (${PASS_MARK}/20). Komeza gutyo.`
+      : gap <= 3
+        ? `Ukeneye nibura ${PASS_MARK}/20. Hasigaye amanota ${gap} gusa — wimenyereze uhereye ku makosa yawe.`
+        : `Ukeneye nibura ${PASS_MARK}/20. Ongera wimenyereze hanyuma ugerageze.`;
 
-  const wrong = attempt.total - attempt.score;
   const blank = attempt.detail.filter(([, c]) => c === null).length;
   $('#rs-right').textContent = attempt.score;
-  $('#rs-wrong').textContent = wrong - blank;
+  $('#rs-wrong').textContent = attempt.total - attempt.score - blank;
   $('#rs-blank').textContent = blank;
   $('#rs-time').textContent = fmtClock(attempt.seconds);
 
-  // per-category breakdown
   const groups = { sign: [0, 0], rule: [0, 0] };
   attempt.detail.forEach(([id, chosen]) => {
     const q = byId.get(id);
     if (!q) return;
-    const g = groups[q.c];
-    g[1]++;
-    if (chosen === q.a) g[0]++;
+    groups[q.c][1]++;
+    if (chosen === q.a) groups[q.c][0]++;
   });
   const labels = { sign: 'Ibyapa', rule: 'Amategeko' };
-  const bd = $('#rs-breakdown');
-  bd.innerHTML = '<h2>Uko wagenze</h2>';
+  const bars = $('#rs-bars');
+  bars.innerHTML = '';
   Object.entries(groups).forEach(([k, [ok, n]]) => {
     if (!n) return;
+    const pct = (ok / n) * 100;
     const row = document.createElement('div');
-    row.className = 'bd-row';
-    row.innerHTML = `<span class="bd-label">${labels[k]}</span>
-      <span class="bd-track"><span class="bd-fill" style="width:${(ok / n) * 100}%"></span></span>
-      <span class="bd-val">${ok}/${n}</span>`;
-    bd.append(row);
+    row.className = 'bar-row';
+    row.innerHTML =
+      `<span class="bar-label">${labels[k]}</span>` +
+      `<span class="bar-track"><span class="bar-fill ${pct >= 70 ? '' : pct >= 50 ? 'mid' : 'low'}" style="width:${pct}%"></span></span>` +
+      `<span class="bar-val">${ok}/${n}</span>`;
+    bars.append(row);
   });
 
+  const up = $('#result-upsell');
+  up.innerHTML = '';
+  if (!isPaid() && examsLeft() === 0) up.append(upsellNode('result'));
+
   renderHome();
-  screenStack = ['home'];      // the finished exam screen is gone; back → home
+  screenStack = ['home'];
   show('result');
 }
 
-/* ── review ──────────────────────────────────────────────────────── */
+/* ── review ────────────────────────────────────────────────────────── */
 function showReview(attempt, title = 'Gusubiramo') {
   $('#review-title').textContent = title;
+  $('#review-score').textContent = `${attempt.score}/${attempt.total}`;
   const body = $('#review-body');
   body.innerHTML = '';
 
@@ -438,24 +691,22 @@ function showReview(attempt, title = 'Gusubiramo') {
     const q = byId.get(id);
     if (!q) return;
     const item = document.createElement('div');
-    item.className = 'rv-item card';
+    item.className = 'rv';
 
     const head = document.createElement('div');
-    head.className = 'q-head';
-    const tag = document.createElement('span');
-    tag.className = 'q-tag';
-    tag.textContent = `Ikibazo ${i + 1}`;
-    const kind = document.createElement('span');
-    kind.className = 'q-tag';
-    kind.style.cssText = 'background:transparent;color:var(--ink-3);padding-left:0';
-    kind.textContent = q.c === 'sign' ? 'Icyapa' : 'Itegeko';
-    const badge = document.createElement('span');
+    head.className = 'rv-head';
+    const n = document.createElement('span');
+    n.className = 'badge plain';
+    n.textContent = `Ikibazo ${i + 1}`;
     const ok = chosen === q.a;
-    badge.className = `rv-badge ${chosen === null ? 'blank' : ok ? 'ok' : 'bad'}`;
+    const badge = document.createElement('span');
+    badge.className = `badge ${chosen === null ? 'blank' : ok ? 'ok' : 'bad'}`;
     badge.textContent = chosen === null ? 'Ntiwasubije' : ok ? 'Nibyo' : 'Sibyo';
-    head.append(tag, badge, kind);
+    const page = document.createElement('span');
+    page.className = 'rv-page';
+    page.textContent = `ur. ${q.p}`;
+    head.append(n, badge, page);
     item.append(head);
-
     item.append(questionNode(q, { chosen, reveal: true, showHead: false }));
     body.append(item);
   });
@@ -463,28 +714,24 @@ function showReview(attempt, title = 'Gusubiramo') {
   show('review');
 }
 
-/* ═══════════════════════ PRACTICE ════════════════════════════════ */
+/* ══ PRACTICE ══════════════════════════════════════════════════════ */
 let practice = null;
 
 function startPractice(kind) {
-  let pool;
-  const titles = { all: 'Ibibazo byose', sign: 'Ibyapa', rule: 'Amategeko', wrong: 'Amakosa yanjye' };
+  if (!canPractice()) { openPaywall('practice'); return; }
 
+  const titles = { sign: 'Ibyapa', rule: 'Amategeko', wrong: 'Amakosa yanjye' };
+  let pool;
   if (kind === 'wrong') {
     const ids = wrongIds();
-    if (!ids.length) {
-      toast('Nta makosa ufite ubu. Tangira ikizamini!');
-      return;
-    }
+    if (!ids.length) { toast('Nta makosa ufite ubu. Tangira ikizamini!'); return; }
     pool = ids.map(id => byId.get(id));
-  } else if (kind === 'all') {
-    pool = shuffled(BANK);
   } else {
     pool = shuffled(BANK.filter(q => q.c === kind));
   }
 
   practice = { qs: pool, idx: 0, answers: {}, ok: 0, bad: 0 };
-  $('#pr-title').textContent = titles[kind];
+  $('#pr-title').textContent = titles[kind] || 'Kwimenyereza';
   show('practice');
   renderPractice();
 }
@@ -498,33 +745,48 @@ function renderPractice() {
   body.append(questionNode(q, {
     chosen: chosen ?? null,
     reveal: chosen !== undefined,
-    position: practice.idx + 1,
-    total: practice.qs.length,
+    showHead: false,
     onPick: chosen !== undefined ? null : i => {
+      if (!canPractice()) { openPaywall('practice'); return; }
       practice.answers[q.id] = i;
       const correct = i === q.a;
       correct ? practice.ok++ : practice.bad++;
       recordAnswer(q.id, correct);
+      if (!isPaid()) { ent.practice = (ent.practice || 0) + 1; saveEnt(); }
       renderPractice();
     },
   }));
 
   if (chosen !== undefined) {
-    const fb = document.createElement('div');
     const correct = chosen === q.a;
+    const fb = document.createElement('div');
     fb.className = `feedback ${correct ? 'ok' : 'bad'}`;
-    fb.textContent = correct
-      ? '✓ Nibyo — igisubizo ni cyo.'
-      : `✕ Sibyo — igisubizo nyacyo ni ${LETTERS[q.a]}.`;
+    fb.append(icon(correct ? 'i-check' : 'i-alert', 18));
+    const span = document.createElement('span');
+    if (correct) span.innerHTML = '<b>Nibyo.</b> Igisubizo ni cyo.';
+    else span.innerHTML = `<b>Sibyo.</b> Igisubizo nyacyo ni <b>${LETTERS[q.a]}</b>.`;
+    fb.append(span);
     body.append(fb);
     fb.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 
-  $('#pr-tally').innerHTML =
-    `<span class="t-ok">${practice.ok}</span> · <span class="t-bad">${practice.bad}</span>`;
+  if (!isPaid()) {
+    const left = practiceLeft();
+    const note = document.createElement('p');
+    note.className = 'fineprint';
+    note.style.textAlign = 'center';
+    note.textContent = left > 0
+      ? `Ibibazo ${left} by'ubuntu bisigaye.`
+      : "Ibibazo by'ubuntu byarangiye.";
+    body.append(note);
+  }
+
+  $('#pr-pos').textContent = `${practice.idx + 1} / ${practice.qs.length}`;
+  $('#pr-ok').textContent = practice.ok;
+  $('#pr-bad').textContent = practice.bad;
   $('#pr-prev').disabled = practice.idx === 0;
   $('#pr-next').textContent =
-    practice.idx === practice.qs.length - 1 ? 'Birarangiye' : 'Komeza ›';
+    practice.idx === practice.qs.length - 1 ? 'Birarangiye' : 'Komeza';
 }
 
 function movePractice(delta) {
@@ -535,56 +797,80 @@ function movePractice(delta) {
     goHome();
     return;
   }
+  if (delta > 0 && !canPractice() && practice.answers[practice.qs[next].id] === undefined) {
+    openPaywall('practice');
+    return;
+  }
   practice.idx = next;
   renderPractice();
 }
 
-/* ═══════════════════════ HOME ════════════════════════════════════ */
+/* ══ HOME ══════════════════════════════════════════════════════════ */
 function renderHome() {
   const a = stats.attempts;
-  $('#st-attempts').textContent = a.length;
-  $('#st-passed').textContent = a.filter(x => x.passed).length;
-  $('#st-best').textContent = a.length ? `${Math.max(...a.map(x => x.score))}/20` : '—';
-  $('#st-avg').textContent = a.length
-    ? `${(a.reduce((s, x) => s + x.score, 0) / a.length).toFixed(1)}/20` : '—';
 
-  // sparkline of the last 12 attempts, oldest first
+  // Licence pill. Once the trial is spent the locked CTA below already
+  // makes the ask — a third "you must pay" badge would just nag.
+  const pill = $('#status-pill');
+  if (isPaid()) {
+    pill.className = 'pill pill-paid';
+    pill.textContent = 'Burundu';
+  } else if (examsLeft() > 0) {
+    pill.className = 'pill pill-trial';
+    pill.innerHTML = '';
+    pill.append(icon('i-clock', 13));
+    pill.append(document.createTextNode(` ${examsLeft()} cy'ubuntu`));
+  } else {
+    pill.className = 'pill hidden';
+    pill.textContent = '';
+  }
+
+  // CTA
+  const locked = !canExam();
+  $('#btn-start-exam').classList.toggle('locked', locked);
+  $('#cta-title').textContent = locked ? 'Fungura burundu' : 'Tangira Ikizamini';
+  $('#cta-sub').innerHTML = locked
+    ? `${fmtMoney(CFG.price || 1000)} ${CFG.currency || 'RWF'} · rimwe gusa`
+    : `Ibibazo 20 · Iminota <span data-mins>${Number(prefs.duration) ? prefs.duration : '∞'}</span> · 12/20`;
+
+  $('#st-attempts').textContent = a.length;
+  $('#st-best').innerHTML = a.length
+    ? `${Math.max(...a.map(x => x.score))}<small>/20</small>` : '—';
+  $('#st-wrong').textContent = wrongIds().length;
+
   const spark = $('#spark');
   spark.innerHTML = '';
-  a.slice(0, 12).reverse().forEach(x => {
+  const recent = a.slice(0, 5).reverse();
+  (recent.length ? recent : Array(5).fill(null)).forEach(x => {
     const bar = document.createElement('i');
-    bar.style.height = `${clamp((x.score / 20) * 100, 8, 100)}%`;
-    bar.className = x.passed ? 'pass' : 'fail';
-    bar.title = `${x.score}/20`;
+    bar.style.height = x ? `${clamp((x.score / 20) * 100, 10, 100)}%` : '18%';
+    if (x) bar.className = x.passed ? 'pass' : 'fail';
     spark.append(bar);
   });
-  if (!a.length) spark.innerHTML = '<i style="height:8%"></i>'.repeat(12);
 
-  // readiness = average of the last five attempts
-  const recent = a.slice(0, 5);
-  const ring = $('#ring-fg');
-  const CIRC = 327;
-  if (recent.length) {
-    const pct = Math.round(recent.reduce((s, x) => s + x.score, 0) / recent.length / 20 * 100);
+  const five = a.slice(0, 5);
+  const score = $('.ready-score');
+  score.style.fontSize = five.length ? '' : '30px';   // a lone em-dash at 46px reads as a rule
+  if (five.length) {
+    const pct = Math.round(five.reduce((s, x) => s + x.score, 0) / five.length / 20 * 100);
     $('#ready-value').textContent = `${pct}%`;
-    ring.style.strokeDashoffset = String(CIRC - (CIRC * pct) / 100);
     let label, sub, color;
     if (pct >= 80) {
-      label = 'Witeguye neza'; color = '#14b88a';
+      label = 'Witeguye neza'; color = 'var(--go)';
       sub = 'Uri ku rwego rwo gutsinda. Komeza wimenyereze buri munsi.';
     } else if (pct >= 60) {
-      label = 'Uri hafi'; color = '#e0a94a';
+      label = 'Uri hafi gutsinda'; color = 'var(--caution)';
       sub = 'Urashobora gutsinda, ariko ntibirahamye. Reba amakosa yawe.';
     } else {
-      label = 'Ukeneye kwiga'; color = '#f0736a';
+      label = 'Ukeneye kwiga'; color = 'var(--stop)';
       sub = 'Wimenyereze cyane mbere yo kujya mu kizamini nyacyo.';
     }
+    score.style.color = color;
     $('#ready-label').textContent = label;
     $('#ready-sub').textContent = sub;
-    ring.style.stroke = color;
   } else {
     $('#ready-value').textContent = '—';
-    ring.style.strokeDashoffset = String(CIRC);
+    score.style.color = 'var(--ink-3)';
     $('#ready-label').textContent = 'Ntabwo urapima';
     $('#ready-sub').textContent = 'Tangira ikizamini cya mbere kugira ngo umenye aho ugeze.';
   }
@@ -593,25 +879,38 @@ function renderHome() {
   $('#cnt-sign').textContent = BANK.filter(q => q.c === 'sign').length;
   $('#cnt-rule').textContent = BANK.filter(q => q.c === 'rule').length;
   $('#cnt-wrong').textContent = wrongIds().length;
-  $('#fp-count').textContent = BANK.length;
 
-  $$('[data-mins]').forEach(el => {
-    el.textContent = Number(prefs.duration) ? prefs.duration : '∞';
-  });
+  // No separate upsell block on home: when the trial is spent the main
+  // CTA has already turned into the unlock button, and the result screen
+  // carries the pitch at the moment it actually lands.
+  $('#home-upsell').classList.add('hidden');
 
-  // unfinished exam?
+  // recent history
+  const hist = $('#home-hist');
+  hist.innerHTML = '';
+  if (!a.length) {
+    hist.innerHTML = '<p class="empty" style="padding:22px 10px">Nta kizamini urakora.</p>';
+  } else {
+    a.slice(0, 2).forEach(att => hist.append(histRow(att)));
+  }
+
+  $('#fineprint').innerHTML = isPaid()
+    ? `Ibibazo <b>${BANK.length}</b> byakuwe mu gitabo cya provisoire. Ifunguwe burundu${
+        ent.code ? ` · kode …${ent.code.slice(-4)}` : ''}.`
+    : `Ibibazo <b>${BANK.length}</b> byakuwe mu gitabo cya provisoire. Porogaramu ikora nta internet.`;
+
+  // unfinished exam
   const saved = load(KEY.exam, null);
   const card = $('#resume-card');
   if (saved && saved.ids && saved.ids.length) {
-    const done = Object.keys(saved.answers || {}).length;
-    const expired = saved.endsAt && Date.now() > saved.endsAt;
-    if (expired) {
+    if (saved.endsAt && Date.now() > saved.endsAt) {
       localStorage.removeItem(KEY.exam);
       card.classList.add('hidden');
     } else {
+      const done = Object.keys(saved.answers || {}).length;
       $('#resume-info').textContent =
         `Wasubije ${done}/${saved.ids.length} · ${saved.endsAt
-          ? 'hasigaye ' + fmtClock((saved.endsAt - Date.now()) / 1000) : 'nta gihe ntarengwa'}`;
+          ? 'hasigaye ' + fmtClock((saved.endsAt - Date.now()) / 1000) : 'nta gihe'}`;
       card.classList.remove('hidden');
     }
   } else {
@@ -619,38 +918,44 @@ function renderHome() {
   }
 }
 
+function histRow(att) {
+  const row = document.createElement('button');
+  row.type = 'button';
+  row.className = 'hist';
+  const sc = document.createElement('span');
+  sc.className = `hist-score ${att.passed ? 'pass' : 'fail'}`;
+  sc.textContent = att.score;
+  const meta = document.createElement('span');
+  meta.className = 'hist-meta';
+  meta.innerHTML = `<strong>${att.passed ? 'Watsinze' : 'Ntiwatsinze'} — ${att.score}/${att.total}</strong>`
+                 + `<span>${fmtDate(att.date)} · ${fmtClock(att.seconds)}</span>`;
+  row.append(sc, meta, icon('i-chev', 17));
+  row.addEventListener('click', () => showReview(att, fmtDate(att.date)));
+  return row;
+}
+
 function renderHistory() {
   const body = $('#history-body');
   body.innerHTML = '';
   if (!stats.attempts.length) {
     body.innerHTML = '<p class="empty">Nta kizamini urakora.<br>Tangira ikizamini cya mbere.</p>';
-    show('history');
-    return;
+  } else {
+    const list = document.createElement('div');
+    list.className = 'hist-list';
+    stats.attempts.forEach(att => list.append(histRow(att)));
+    body.append(list);
   }
-  stats.attempts.forEach(att => {
-    const row = document.createElement('button');
-    row.type = 'button';
-    row.className = 'hist-row';
-    row.style.cssText = 'width:100%;background:none;border:0;border-bottom:1px solid var(--line);text-align:left';
-    row.innerHTML = `
-      <span class="hist-score ${att.passed ? 'pass' : 'fail'}">${att.score}</span>
-      <span class="hist-meta">
-        <strong>${att.passed ? 'Watsinze' : 'Ntiwatsinze'} — ${att.score}/${att.total}</strong>
-        <span>${fmtDate(att.date)} · ${fmtClock(att.seconds)}${att.timedOut ? ' · igihe cyarangiye' : ''}</span>
-      </span>
-      <span class="muted">›</span>`;
-    row.addEventListener('click', () => showReview(att, `Ikizamini cyo ku ${fmtDate(att.date)}`));
-    body.append(row);
-  });
   show('history');
 }
 
-/* ═══════════════════════ WIRING ══════════════════════════════════ */
+/* ══ WIRING ════════════════════════════════════════════════════════ */
 function wire() {
   $('#btn-start-exam').addEventListener('click', async () => {
+    if (!canExam()) { openPaywall('exam'); return; }
     const saved = load(KEY.exam, null);
     if (saved && saved.ids) {
-      if (!await confirmAsk('Tangira gishya?', 'Hari ikizamini utarangije. Nutangira gishya, icya kera kizasibwa.', 'Tangira gishya')) return;
+      if (!await confirmAsk('Tangira gishya?',
+        "Hari ikizamini utarangije. Nutangira gishya, icya kera kizasibwa.", 'Tangira gishya')) return;
     }
     newExam();
   });
@@ -666,8 +971,7 @@ function wire() {
 
   $('#btn-prev').addEventListener('click', () => move(-1));
   $('#btn-next').addEventListener('click', () => {
-    if (exam.idx === exam.ids.length - 1) trySubmit();
-    else move(1);
+    if (exam.idx === exam.ids.length - 1) trySubmit(); else move(1);
   });
   $('#btn-grid').addEventListener('click', openGrid);
   $('#btn-flag').addEventListener('click', () => {
@@ -682,7 +986,8 @@ function wire() {
     trySubmit();
   });
   $('#btn-quit').addEventListener('click', async () => {
-    if (await confirmAsk('Sohoka mu kizamini?', 'Ikizamini kizabikwa ushobora kugikomeza nyuma.', 'Sohoka')) {
+    if (await confirmAsk('Sohoka mu kizamini?',
+      'Ikizamini kizabikwa ushobora kugikomeza nyuma.', 'Sohoka')) {
       clearInterval(tick);
       save(KEY.exam, exam);
       exam = null;
@@ -691,11 +996,15 @@ function wire() {
   });
 
   $('#btn-review').addEventListener('click', () => showReview(lastAttempt));
-  $('#btn-again').addEventListener('click', newExam);
+  $('#btn-again').addEventListener('click', () => {
+    if (!canExam()) { openPaywall('exam'); return; }
+    newExam();
+  });
   $('#btn-home').addEventListener('click', goHome);
   $('#btn-history').addEventListener('click', renderHistory);
   $('#btn-clear').addEventListener('click', async () => {
-    if (await confirmAsk('Siba amateka?', 'Ibizamini byose n\'amakosa yawe bizasibwa burundu.', 'Siba')) {
+    if (await confirmAsk('Siba amateka?',
+      "Ibizamini byose n'amakosa yawe bizasibwa burundu. Uburenganzira bwawe ntibuzasibwa.", 'Siba')) {
       stats = { attempts: [], perQ: {} };
       save(KEY.stats, stats);
       renderHistory();
@@ -715,6 +1024,37 @@ function wire() {
     if (e.target.id === 'grid-sheet') e.target.classList.add('hidden');
   });
 
+  // paywall
+  $('#pay-dial').addEventListener('click', dialMomo);
+  $('#pay-copy').addEventListener('click', copyMomo);
+  $('#pay-whatsapp').addEventListener('click', openWhatsApp);
+  $('#pay-unlock').addEventListener('click', openUnlock);
+  $('#pay-back').addEventListener('click', back);
+
+  // unlock
+  const input = $('#code-input');
+  input.addEventListener('input', () => {
+    codeValue = normalizeCode(input.value).slice(0, 8);
+    input.value = codeValue;
+    codeMsg(null);
+    renderCodeBoxes();
+  });
+  $('#code-boxes').parentElement.addEventListener('click', () => input.focus());
+  $('#code-submit').addEventListener('click', submitCode);
+  $('#code-paste').addEventListener('click', async () => {
+    try {
+      const t = await navigator.clipboard.readText();
+      codeValue = normalizeCode(t).slice(0, 8);
+      input.value = codeValue;
+      renderCodeBoxes();
+      if (codeValue.length === 8) submitCode();
+    } catch {
+      toast('Komeka wenyine mu kazu ka kode.');
+      input.focus();
+    }
+  });
+
+  // settings
   $('#set-duration').value = String(prefs.duration);
   $('#set-duration').addEventListener('change', e => {
     prefs.duration = Number(e.target.value);
@@ -727,12 +1067,10 @@ function wire() {
     save(KEY.prefs, prefs);
   });
 
-  // keep the countdown honest when the phone sleeps or the tab is hidden
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && exam) updateTimer();
   });
 
-  // Android back button / browser back
   window.addEventListener('popstate', () => {
     if (screenStack.length > 1) {
       screenStack.pop();
@@ -741,7 +1079,7 @@ function wire() {
   });
 }
 
-/* ── install prompt ──────────────────────────────────────────────── */
+/* ── install prompt ────────────────────────────────────────────────── */
 let deferredPrompt = null;
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
@@ -756,29 +1094,37 @@ $('#btn-install').addEventListener('click', async () => {
   $('#btn-install').classList.add('hidden');
 });
 
-/* ── boot ────────────────────────────────────────────────────────── */
+/* ── boot ──────────────────────────────────────────────────────────── */
 async function boot() {
   try {
-    const res = await fetch('data/questions.json');
-    const data = await res.json();
+    const data = await (await fetch('data/questions.json')).json();
     BANK = data.questions;
     byId = new Map(BANK.map(q => [q.id, q]));
-  } catch (err) {
+  } catch {
     $('#boot').innerHTML =
       '<p style="padding:24px;text-align:center">Ibibazo ntibyaboneka.<br>Ongera ufungure porogaramu.</p>';
     return;
   }
 
   wire();
+  renderPayConfig();
+  renderCodeBoxes();
   renderHome();
   show('home', false);
   $('#boot').remove();
 
-  // launched from the home-screen shortcut
-  if (new URLSearchParams(location.search).get('go') === 'exam') newExam();
+  if (new URLSearchParams(location.search).get('go') === 'exam') {
+    canExam() ? newExam() : openPaywall('exam');
+  }
 
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => { /* offline install optional */ });
+    navigator.serviceWorker.register('sw.js').then(async () => {
+      // If a previous visit cached only part of the app (patchy signal),
+      // ask the worker to fill the gaps while we still have a connection.
+      if (!navigator.onLine) return;
+      const reg = await navigator.serviceWorker.ready;
+      reg.active && reg.active.postMessage({ type: 'topup' });
+    }).catch(() => {});
   }
 }
 

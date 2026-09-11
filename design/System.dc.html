@@ -1,0 +1,134 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap">
+  <style>
+    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+    a { color: #0B7A4B; text-decoration: none; } a:hover { color: #085B38; }
+    .num { font-family: "Space Grotesk", system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+    .lbl { font-size: 11px; font-weight: 650; letter-spacing: 0.09em; text-transform: uppercase; color: #8D9AA2; }
+    .hex { font-family: "Space Grotesk", monospace; font-size: 11.5px; color: #5C6A72; }
+  </style>
+</helmet>
+
+<div style="width: 760px; height: 960px; background: #F6F4EF; color: #10161A; padding: 34px 36px; box-sizing: border-box; display: flex; flex-direction: column; gap: 26px;">
+
+  <div style="display: flex; flex-direction: column; gap: 5px;">
+    <span class="num" style="font-size: 25px; font-weight: 700; letter-spacing: -0.025em;">Sisitemu y'igishushanyo</span>
+    <span style="font-size: 13.5px; color: #5C6A72;">Amabara ashingiye ku matara y'umuhanda — icyatsi = genda, umuhondo = witonde, umutuku = hagarara.</span>
+  </div>
+
+  <!-- colour -->
+  <div style="display: flex; flex-direction: column; gap: 11px;">
+    <span class="lbl">Amabara</span>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 11px;">
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <span style="display: block; height: 58px; border-radius: 12px; background: #0B7A4B;"></span>
+        <span style="font-size: 12.5px; font-weight: 650;">Go</span><span class="hex">#0B7A4B</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <span style="display: block; height: 58px; border-radius: 12px; background: #B57314;"></span>
+        <span style="font-size: 12.5px; font-weight: 650;">Caution</span><span class="hex">#B57314</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <span style="display: block; height: 58px; border-radius: 12px; background: #B8302B;"></span>
+        <span style="font-size: 12.5px; font-weight: 650;">Stop</span><span class="hex">#B8302B</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <span style="display: block; height: 58px; border-radius: 12px; background: #10161A;"></span>
+        <span style="font-size: 12.5px; font-weight: 650;">Ink</span><span class="hex">#10161A</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <span style="display: block; height: 58px; border-radius: 12px; background: #F6F4EF; border: 1px solid #E3DFD6;"></span>
+        <span style="font-size: 12.5px; font-weight: 650;">Paper</span><span class="hex">#F6F4EF</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <span style="display: block; height: 58px; border-radius: 12px; background: #E4F1EA;"></span>
+        <span style="font-size: 12.5px; font-weight: 650;">Go soft</span><span class="hex">#E4F1EA</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <span style="display: block; height: 58px; border-radius: 12px; background: #FAEAE8;"></span>
+        <span style="font-size: 12.5px; font-weight: 650;">Stop soft</span><span class="hex">#FAEAE8</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <span style="display: block; height: 58px; border-radius: 12px; background: #FFFFFF; border: 1px solid #E3DFD6;"></span>
+        <span style="font-size: 12.5px; font-weight: 650;">Surface</span><span class="hex">#FFFFFF</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- type -->
+  <div style="display: flex; flex-direction: column; gap: 11px;">
+    <span class="lbl">Inyuguti</span>
+    <div style="display: flex; align-items: baseline; gap: 26px; flex-wrap: wrap;">
+      <span class="num" style="font-size: 46px; font-weight: 700; letter-spacing: -0.035em;">16/20</span>
+      <span class="num" style="font-size: 25px; font-weight: 700; letter-spacing: -0.025em;">Space Grotesk</span>
+      <span style="font-size: 17px; font-weight: 650;">Iki cyapa gisobanura iki?</span>
+      <span style="font-size: 14px; color: #5C6A72;">system-ui — umubiri w'inyandiko</span>
+    </div>
+  </div>
+
+  <!-- buttons -->
+  <div style="display: flex; flex-direction: column; gap: 11px;">
+    <span class="lbl">Buto</span>
+    <div style="display: flex; gap: 11px; flex-wrap: wrap;">
+      <span class="num" style="display: flex; min-height: 48px; align-items: center; padding: 0 24px; background: #0B7A4B; border-radius: 13px; font-size: 14.5px; font-weight: 700; color: #FFFFFF;">Tangira</span>
+      <span class="num" style="display: flex; min-height: 48px; align-items: center; padding: 0 24px; background: #10161A; border-radius: 13px; font-size: 14.5px; font-weight: 700; color: #FFFFFF;">Reba ibisubizo</span>
+      <span style="display: flex; min-height: 48px; align-items: center; padding: 0 24px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 13px; font-size: 14px; font-weight: 600;">Ahabanza</span>
+      <span style="display: flex; min-height: 48px; align-items: center; padding: 0 24px; background: #D8D3C8; border-radius: 13px; font-size: 14px; font-weight: 600; color: #FFFFFF;">Idakora</span>
+      <span style="display: inline-flex; align-items: center; padding: 7px 13px; border-radius: 999px; background: #FBF0DC; color: #8A5A0F; font-size: 12.5px; font-weight: 650;">1 cy'ubuntu</span>
+      <span style="display: inline-flex; align-items: center; padding: 7px 13px; border-radius: 999px; background: #E4F1EA; color: #0B7A4B; font-size: 12.5px; font-weight: 700;">Burundu</span>
+    </div>
+  </div>
+
+  <!-- option states -->
+  <div style="display: flex; flex-direction: column; gap: 11px;">
+    <span class="lbl">Ibisubizo — imiterere</span>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px;">
+      <div style="display: flex; align-items: center; gap: 12px; background: #FFFFFF; border: 1.5px solid #E3DFD6; border-radius: 14px; padding: 13px 14px;">
+        <span class="num" style="display: flex; width: 30px; height: 30px; flex: none; border-radius: 50%; background: #F2F0EA; border: 1.5px solid #E3DFD6; color: #5C6A72; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 700;">A</span>
+        <span style="font-size: 14.5px;">Nta cyahiswemo</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; background: #E9F4EE; border: 1.5px solid #0B7A4B; border-radius: 14px; padding: 13px 14px;">
+        <span class="num" style="display: flex; width: 30px; height: 30px; flex: none; border-radius: 50%; background: #0B7A4B; border: 1.5px solid #0B7A4B; color: #FFFFFF; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 700;">B</span>
+        <span style="font-size: 14.5px; font-weight: 600;">Cyahiswemo / Nibyo</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; background: #FAEAE8; border: 1.5px solid #B8302B; border-radius: 14px; padding: 13px 14px;">
+        <span class="num" style="display: flex; width: 30px; height: 30px; flex: none; border-radius: 50%; background: #B8302B; border: 1.5px solid #B8302B; color: #FFFFFF; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 700;">C</span>
+        <span style="font-size: 14.5px;">Sibyo</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; background: #FFFFFF; border: 1.5px dashed #D8D3C8; border-radius: 14px; padding: 13px 14px;">
+        <span class="num" style="display: flex; width: 30px; height: 30px; flex: none; border-radius: 50%; background: #F2F0EA; border: 1.5px solid #E3DFD6; color: #C9C3B6; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 700;">D</span>
+        <span style="font-size: 14.5px; color: #A8B2B8;">Gifunze — kwishyura</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- grid + meta -->
+  <div style="display: flex; gap: 30px; align-items: flex-start;">
+    <div style="display: flex; flex-direction: column; gap: 11px;">
+      <span class="lbl">Urutonde rw'ibibazo</span>
+      <div style="display: grid; grid-template-columns: repeat(5, 44px); gap: 8px;">
+        <span class="num" style="display: flex; height: 44px; border-radius: 11px; background: #0B7A4B; color: #FFFFFF; align-items: center; justify-content: center; font-size: 14px; font-weight: 700;">1</span>
+        <span class="num" style="display: flex; height: 44px; border-radius: 11px; background: #0B7A4B; color: #FFFFFF; align-items: center; justify-content: center; font-size: 14px; font-weight: 700;">2</span>
+        <span class="num" style="display: flex; height: 44px; border-radius: 11px; background: #FBF0DC; border: 1.5px solid #E7C88A; color: #8A5A0F; align-items: center; justify-content: center; font-size: 14px; font-weight: 700;">3</span>
+        <span class="num" style="display: flex; height: 44px; border-radius: 11px; background: #FFFFFF; border: 1.5px solid #10161A; align-items: center; justify-content: center; font-size: 14px; font-weight: 700;">4</span>
+        <span class="num" style="display: flex; height: 44px; border-radius: 11px; background: #FFFFFF; border: 1.5px solid #E3DFD6; color: #A8B2B8; align-items: center; justify-content: center; font-size: 14px; font-weight: 700;">5</span>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 11px;">
+      <span class="lbl">Ibipimo</span>
+      <span style="font-size: 13px; line-height: 1.75; color: #5C6A72;">Radius 18 / 14 / 13 / 11 px · Hairline 1px #E3DFD6<br>Hit target ≥ 46px · Rhythm 8 / 12 / 16 / 20 / 26px</span>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

@@ -1,12 +1,14 @@
 # Kora Utware — Ikizamini cya Provisoire
 
 An offline-first PWA that simulates the Rwandan **provisional driving permit**
-(*provisoire*) theory exam, built from the official question book in `PDF.pdf`.
+(*provisoire*) theory exam, built from the official question book.
 
 - **398 questions** extracted from the 124-page book, in Kinyarwanda
-- **145 sign images / road-scene photos**, embedded and cached for offline use
+- **145 sign images / road-scene photos**, cached for offline use
 - Full exam simulation: **20 random questions · 20 minutes · pass at 12/20**
-- Works with **no internet at all** once loaded; installable to a phone home screen
+- **One free exam**, then **1,000 RWF once, forever** — paid by MoMo, unlocked
+  by a code, with no payment processor and no backend
+- Works with **no internet at all** once loaded; installable on Android and iPhone
 
 ---
 
@@ -20,30 +22,107 @@ An offline-first PWA that simulates the Rwandan **provisional driving permit**
 | Format | Multiple choice, one correct answer of four |
 
 Sources: [Irembo — provisional driving licence](https://support.irembo.gov.rw/en/support/solutions/articles/47001241773-everything-you-need-to-know-about-getting-your-e-provisional-driving-license)
-(pass mark 12/20, or 60% at the Busanza automated test centre) and
-[Rwanda National Police — PDL](https://police.gov.rw/services/testing-and-licencing/provisional-driving-licence-pdl/)
-(minimum age 18; the permit is valid one year and renewable once).
+and [Rwanda National Police — PDL](https://police.gov.rw/services/testing-and-licencing/provisional-driving-licence-pdl/).
 
-Note: one source describes the exam as taking "not more than 30 minutes", so the
-timer is configurable. The default is the 20 minutes you specified.
+---
+
+## Making money from it
+
+### What a new user gets free
+
+One full timed exam, plus 15 practice questions. Both are set in
+[`config.js`](config.js). After that the app asks for **1,000 RWF, once**, and
+everything is unlocked permanently on that phone.
+
+The pitch appears at the two moments that convert: on the **result screen**,
+right after they see their score and know whether they are ready, and as a
+**full paywall** the next time they try to start an exam or practise.
+
+### How the money actually reaches you
+
+There is no payment integration to set up, nothing to register for, and no
+server to run. The flow is deliberately manual:
+
+1. The buyer taps **Ishyura kuri MoMo** — this opens their dialer prefilled
+   with the MTN send-money USSD string for your number and 1,000 RWF. (They can
+   also copy the number; iOS blocks auto-dialling USSD.)
+2. They send you the transaction ID on **WhatsApp** or **SMS** — the buttons
+   open a prefilled message.
+3. You check the payment arrived, take the next unused code out of
+   `build/codes-private.csv`, and send it to them.
+4. They type it into the app and it unlocks forever, offline.
+
+### Generating codes
+
+```bash
+python build/5_codes.py 300     # 300 more codes, appended to the existing set
+python build/5_codes.py --list  # what has been generated and handed out
+```
+
+This writes two things:
+
+- **`data/unlock.json`** — PBKDF2 hashes only. Safe to commit and deploy.
+- **`build/codes-private.csv`** — the actual codes. **This file is the
+  product.** It is git-ignored; back it up somewhere private. If you lose it
+  you lose the plaintext codes forever (already-unlocked phones stay unlocked).
+  It has `issued_to` / `issued_on` / `note` columns — fill them in as you sell,
+  so a leaked code can be traced back to a buyer.
+
+Re-running the script **appends**; codes already sold keep working. Run
+`python build/4_service_worker.py` afterwards so phones pick up the new list.
+
+### Why the codes are hard to forge without a server
+
+The app ships only hashes, never the codes. A code is 8 characters from a
+31-character alphabet (~8.5 × 10¹¹ combinations, with `0 O 1 I L` left out so
+nobody mistypes), and each guess costs **150,000 PBKDF2-SHA256 iterations**.
+Guessing is therefore impractical, while a genuine unlock still takes a
+fraction of a second on a phone.
+
+### What this design does *not* do — read this before pricing
+
+Because verification is offline, these are real and unavoidable without a server:
+
+- **A code works on more than one phone.** Nothing can phone home to say it was
+  already used. The `issued_to` column is your defence: if a code spreads, you
+  know whose it was.
+- **Clearing the app's data resets the free trial.** Anyone who knows to clear
+  site data, or uses a private window, gets another free exam. The trial state
+  is written to two separate keys so a partial clear doesn't reset it, but a
+  full clear will.
+- **The question bank is public** once deployed — it has to be, for the app to
+  work offline. What you are selling is the packaged, working exam simulator,
+  not secret content.
+
+For the price point and the audience this is the right trade. If it ever needs
+to be airtight, the upgrade is a small serverless endpoint that marks a code
+used on first redemption — the client code is already structured for it
+(`checkCode` in `app.js` is the only thing that would change).
+
+### Setting it up
+
+Edit the four marked lines in [`config.js`](config.js) — your MoMo number, the
+name buyers will see on their confirmation, your WhatsApp number, your SMS
+number — then redeploy. Nothing else needs changing. Until you do, the paywall
+shows a placeholder number.
 
 ---
 
 ## What's in the app
 
-**Ikizamini (Exam)** — the serious one. One question per screen, live countdown,
-no feedback until you submit. Flag questions for review, jump around with the
-question grid, and the timer keeps running even if the app is closed. At 0:00 it
-submits automatically. Unfinished exams are saved and can be resumed.
+**Ikizamini (Exam)** — one question per screen, live countdown, no feedback
+until you submit. Flag questions, jump around with the question grid, and the
+timer keeps running even if the app is closed. At 0:00 it submits itself.
+Unfinished exams are saved and resumable.
 
-**Kwimenyereza (Practice)** — instant right/wrong feedback, no clock. Split by
+**Kwimenyereza (Practice)** — instant right/wrong feedback, no clock, split by
 **Ibyapa** (road signs, 180) and **Amategeko** (road rules, 218).
 
-**Amakosa yanjye (My mistakes)** — replays only the questions he has got wrong.
-A question drops off the list once he answers it correctly again.
+**Amakosa yanjye** — replays only the questions he has got wrong; a question
+drops off the list once he answers it correctly again.
 
-**Progress** — readiness percentage from the last five exams, best/average score,
-a bar chart of recent attempts, and a full history where every past exam can be
+**Progress** — a readiness percentage from the last five exams, best score, a
+bar chart of recent attempts, and a full history where any past exam can be
 reopened and reviewed question by question.
 
 Every question shows its page number in the source book, so any answer can be
@@ -51,123 +130,125 @@ checked against the original.
 
 ---
 
+## Design
+
+The interface was redesigned around **traffic-signal semantics**: green means
+go and pass, amber means caution and flagged, red means stop and wrong — the
+same language the road code itself uses, so colour carries meaning rather than
+decoration. Warm paper ground, always-dark chrome for the exam bar and paywall,
+hairline borders, and tabular numerals for the figures that matter (score,
+timer, counts).
+
+The full design canvas — eleven phone artboards plus the system sheet and two
+directions not taken — is at
+<https://claude.ai/code/artifact/6875abbe-ccd4-4387-a93e-fa62c7e27691>, with
+source in [`design/`](design/).
+
+The interface is Kinyarwanda throughout, matching the exam and the book.
+Nothing is hard-coded against a second language, so an English toggle can be
+added later without restructuring.
+
+> The mockups use Space Grotesk for numerals. The shipped app uses the system
+> font stack instead, so that nothing has to be fetched at runtime and the
+> offline payload stays small. To match the mockups exactly, self-host the
+> woff2 and add it to `--display` in `styles.css`.
+
+---
+
 ## Running it
 
-The app must be served over HTTP — opening `index.html` directly from the file
-system will not work, because browsers block `fetch()` on `file://` URLs.
+The app must be served over HTTP — opening `index.html` from the file system
+will not work, because browsers block `fetch()` on `file://`.
 
 ```bash
 python -m http.server 8777
 ```
 
-Then open <http://localhost:8777>.
-
 ### Deploying to Vercel
 
-This is a plain static site — no build step, no server code, no dependencies.
+A plain static site: no build step, no server code, no dependencies.
 
-1. On [vercel.com](https://vercel.com), **Add New → Project** and import
-   `Gacaca6/KoraUtsinde`.
-2. Framework preset: **Other**. Leave build command and output directory empty.
-3. Deploy.
+1. **Add New → Project**, import `Gacaca6/KoraUtsinde`
+2. Framework preset **Other**; leave build command and output directory empty
+3. Deploy
 
-`vercel.json` is already set up with the headers that matter:
-
-- `sw.js` and `index.html` are served `must-revalidate`, so a redeploy actually
-  reaches phones instead of being pinned by the CDN
-- `manifest.webmanifest` gets the correct `application/manifest+json` type,
-  which iOS needs before it will treat the site as an installable app
-- `img/` and `icons/` are cached immutably for a year
-
-`.vercelignore` keeps `build/` and the README out of the deployment.
+`vercel.json` sets the headers that matter: `sw.js`, `index.html`, `config.js`
+and `data/` are `must-revalidate` so a redeploy actually reaches phones;
+`manifest.webmanifest` gets the `application/manifest+json` type iOS needs
+before it will treat the site as installable; `img/` and `icons/` are cached
+for a year. `.vercelignore` keeps `build/` and the README out of the deploy.
 
 ### Putting it on a phone
 
-The phone loads the app once from the Vercel URL; after that it runs offline
-forever.
+- **iPhone / Safari:** share → *Add to Home Screen*. Must be Safari; Chrome on
+  iOS cannot install PWAs.
+- **Android / Chrome:** menu → *Install app*, or the **Shyiraho** button.
 
-- **iPhone / Safari:** share button → *Add to Home Screen*. It must be Safari —
-  Chrome on iOS cannot install PWAs. Once added it launches full-screen with its
-  own icon and works in airplane mode.
-- **Android / Chrome:** menu → *Install app*, or the *Shyiraho* button in the
-  app's header.
+All 2.2 MB of assets are precached on first load. If the connection drops
+mid-download the app repairs the gaps on the next load rather than sitting
+half-cached.
 
-All 2.1 MB of assets are precached by the service worker on first load, so no
-data connection is needed afterwards.
-
-> **`PDF.pdf` is deliberately git-ignored.** The source book is stamped
-> *RESTRICTED* on every page and this repository is public, so the PDF stays on
-> your machine. The app never reads it — only `data/questions.json`. If you want
-> the PDF backed up too, put it in a private repo rather than this one.
+> **`PDF.pdf` is git-ignored** — the source book is stamped *RESTRICTED* on
+> every page and this repository is public. The app never reads it; it only
+> reads `data/questions.json`.
 
 ---
 
 ## Layout
 
 ```
-index.html              app shell
-app.js                  exam engine, practice, stats, routing
-styles.css              light + dark theme
-sw.js                   generated service worker (precaches all 155 assets)
+index.html              app shell and all screens
+app.js                  exam engine, practice, stats, entitlement, paywall
+config.js               ← your MoMo / WhatsApp details and trial limits
+styles.css              design system, light + dark
+sw.js                   generated service worker (precaches 157 assets)
 manifest.webmanifest    PWA manifest
-vercel.json             cache + content-type headers for deployment
+vercel.json             cache + content-type headers
 data/questions.json     398 questions (131 KB)
+data/unlock.json        PBKDF2 hashes of valid unlock codes
 img/                    145 sign images (1.9 MB)
 icons/                  app icons (incl. apple-touch-icon, maskable)
-build/                  extraction pipeline (not needed at runtime)
+design/                 design canvas source (.dc.html artboards)
+build/                  extraction + code-generation pipeline
 PDF.pdf                 the source question book (git-ignored)
 ```
-
-The interface is Kinyarwanda throughout, matching the language of the exam and
-of the question book. Nothing is hard-coded against a second language, so an
-English toggle can be added later without restructuring anything.
 
 ---
 
 ## How the questions were extracted
 
-The book marks the correct answer in **two independent ways**: a highlight
-rectangle (yellow, sometimes green) behind the right option, and a `(` before
-its letter — e.g. `(c) A na B ni ibisubizo by'ukuri`. The extractor reads both
-and cross-checks them.
+The book marks the correct answer **two** ways: a highlight rectangle behind
+the right option, and a `(` before its letter — e.g. `(c) A na B ni ibisubizo
+by'ukuri`. The extractor reads both and cross-checks them.
 
-Result across 404 parsed questions:
+Across 404 parsed questions: every one parsed with exactly 4 options; both
+markers present and **agreeing on 359**, disagreeing on **1**; 41 resolved by
+highlight alone, 3 by parenthesis alone; answers spread evenly across A/B/C/D
+(96/107/109/86), so nothing is defaulting.
 
-- **every** question parsed with exactly 4 options
-- both markers present and **agreeing on 359**, disagreeing on **1**
-- 41 resolved by highlight only, 3 by parenthesis only
-- answers spread evenly across A/B/C/D (96/107/109/86), so nothing is defaulting
+The single disagreement (page 50 — a warning triangle showing a pedestrian on a
+zebra crossing) was resolved by hand in favour of the parenthesis, which
+matches what the sign means; a stray highlight sits on the wrong option in the
+book. It is an explicit override in `build/2_finalize.py`. Six exact duplicates
+were removed, leaving **398**.
 
-The single disagreement (source page 50 — a red warning triangle showing a
-pedestrian on a zebra crossing) was resolved by hand in favour of the
-parenthesis marker, which matches what the sign actually means; a stray
-highlight sits on the wrong option in the book. It is recorded as an explicit
-override in `build/2_finalize.py`.
+Images are pulled from the PDF as embedded objects with their soft masks
+re-applied, then trimmed and colour-reduced — 16.3 MB down to 1.9 MB.
 
-Six exact duplicate questions in the book were removed, leaving **398**.
-
-Images are pulled from the PDF as embedded objects rather than screenshots, with
-their soft masks re-applied (otherwise transparent signs render on black), then
-trimmed, downscaled and colour-reduced — 16.3 MB down to 1.9 MB with no visible
-loss.
-
-Answers are reproduced exactly as the book marks them. Where the book has typos
-or an odd answer, the app repeats it — the point is to practise against the same
-material the real test is drawn from. The source page number on each question
-makes disputes easy to settle.
+Answers are reproduced exactly as the book marks them. Where the book has a
+typo or an odd answer, the app repeats it — the point is to practise against
+the same material the real test is drawn from, and the page number on each
+question makes disputes easy to settle.
 
 ### Rebuilding
 
-If the PDF is ever replaced, re-run the pipeline in order:
-
 ```bash
-python build/1_extract.py
-python build/2_finalize.py
-python build/3_icons.py
-python build/4_service_worker.py
+python build/1_extract.py          # PDF -> questions_raw.json + img/
+python build/2_finalize.py         # -> data/questions.json
+python build/3_icons.py            # -> icons/
+python build/5_codes.py 300        # -> data/unlock.json + private CSV
+python build/4_service_worker.py   # LAST — stamps the cache version
 ```
 
-Step 1 reports any question it could not parse confidently. Step 4 must be run
-last — it stamps a new cache version so phones pick up the update.
-
-Requires Python with `pymupdf` and `pillow`.
+Step 1 reports any question it could not parse confidently. Requires Python
+with `pymupdf` and `pillow`.

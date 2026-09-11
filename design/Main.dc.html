@@ -1,0 +1,157 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap">
+  <style>
+    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+    a { color: #0B7A4B; text-decoration: none; } a:hover { color: #085B38; }
+    .num { font-family: "Space Grotesk", system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+  </style>
+</helmet>
+
+<div style="width: 390px; height: 844px; background: #F6F4EF; color: #10161A; display: flex; flex-direction: column; overflow: hidden;">
+
+  <!-- header -->
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 22px 20px 0;">
+    <div style="display: flex; align-items: center; gap: 9px;">
+      <span style="display: flex; width: 30px; height: 30px; border-radius: 9px; background: #10161A; color: #F6F4EF; align-items: center; justify-content: center;">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"></circle>
+          <circle cx="12" cy="12" r="2.7" fill="currentColor"></circle>
+          <path d="M3 12h6.3M14.7 12H21M12 14.7V21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+        </svg>
+      </span>
+      <span class="num" style="font-size: 17px; font-weight: 700; letter-spacing: -0.02em;">Kora Utware</span>
+    </div>
+    <span style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 999px; background: #FBF0DC; color: #8A5A0F; font-size: 12px; font-weight: 650;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.2"></circle>
+      </svg>
+      1 cy'ubuntu
+    </span>
+  </div>
+
+  <!-- readiness -->
+  <div style="margin: 20px 20px 0; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 18px; padding: 20px;">
+    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;">
+      <div style="display: flex; flex-direction: column; gap: 3px;">
+        <span style="font-size: 11.5px; font-weight: 650; letter-spacing: 0.09em; text-transform: uppercase; color: #8D9AA2;">Aho ugeze</span>
+        <span class="num" style="font-size: 46px; font-weight: 700; line-height: 1.02; letter-spacing: -0.035em; color: #0B7A4B;">72<span style="font-size: 24px; color: #8D9AA2;">%</span></span>
+        <span style="font-size: 14px; font-weight: 650; color: #10161A;">Uri hafi gutsinda</span>
+      </div>
+      <div style="display: flex; align-items: flex-end; gap: 5px; height: 66px; padding-top: 14px;">
+        <span style="display: block; width: 13px; height: 44%; border-radius: 3px 3px 0 0; background: #E3DFD6;"></span>
+        <span style="display: block; width: 13px; height: 55%; border-radius: 3px 3px 0 0; background: #B8302B;"></span>
+        <span style="display: block; width: 13px; height: 62%; border-radius: 3px 3px 0 0; background: #0B7A4B;"></span>
+        <span style="display: block; width: 13px; height: 78%; border-radius: 3px 3px 0 0; background: #0B7A4B;"></span>
+        <span style="display: block; width: 13px; height: 100%; border-radius: 3px 3px 0 0; background: #0B7A4B;"></span>
+      </div>
+    </div>
+    <div style="height: 1px; background: #E3DFD6; margin: 17px 0 14px;"></div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+      <div style="display: flex; flex-direction: column; gap: 1px;">
+        <span class="num" style="font-size: 19px; font-weight: 700;">5</span>
+        <span style="font-size: 11.5px; color: #5C6A72;">Ibizamini</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 1px;">
+        <span class="num" style="font-size: 19px; font-weight: 700;">16<span style="color: #8D9AA2; font-size: 14px;">/20</span></span>
+        <span style="font-size: 11.5px; color: #5C6A72;">Ahanitse</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 1px;">
+        <span class="num" style="font-size: 19px; font-weight: 700;">31</span>
+        <span style="font-size: 11.5px; color: #5C6A72;">Amakosa</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- primary action -->
+  <div style="padding: 16px 20px 0;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; background: #0B7A4B; border-radius: 16px; padding: 17px 20px; min-height: 44px;">
+      <div style="display: flex; flex-direction: column; gap: 2px;">
+        <span class="num" style="font-size: 18.5px; font-weight: 700; color: #FFFFFF; letter-spacing: -0.015em;">Tangira Ikizamini</span>
+        <span style="font-size: 12.5px; color: rgba(255,255,255,0.78);">Ibibazo 20 · Iminota 20 · 12/20</span>
+      </div>
+      <span style="display: flex; width: 38px; height: 38px; flex: none; border-radius: 50%; background: rgba(255,255,255,0.16); align-items: center; justify-content: center;">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 12h13M12.5 6l6 6-6 6" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+      </span>
+    </div>
+  </div>
+
+  <!-- practice -->
+  <div style="padding: 24px 20px 0;">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 11px;">
+      <span class="num" style="font-size: 14.5px; font-weight: 700; letter-spacing: -0.01em;">Kwimenyereza</span>
+      <span style="font-size: 12.5px; color: #8D9AA2;">398 ibibazo</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px;">
+      <div style="display: flex; flex-direction: column; gap: 7px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 13px 12px; min-height: 44px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 3.6 21 19H3z" stroke="#B8302B" stroke-width="2" stroke-linejoin="round"></path>
+          <path d="M12 10v3.4" stroke="#B8302B" stroke-width="2" stroke-linecap="round"></path>
+          <circle cx="12" cy="16.4" r="1.1" fill="#B8302B"></circle>
+        </svg>
+        <span style="font-size: 13.5px; font-weight: 650;">Ibyapa</span>
+        <span class="num" style="font-size: 11.5px; color: #8D9AA2;">180</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 7px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 13px 12px; min-height: 44px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 4.5h9.5a2 2 0 0 1 2 2V20H7a2 2 0 0 1-2-2z" stroke="#0B7A4B" stroke-width="2" stroke-linejoin="round"></path>
+          <path d="M8.6 9h5.2M8.6 12.6h5.2" stroke="#0B7A4B" stroke-width="2" stroke-linecap="round"></path>
+        </svg>
+        <span style="font-size: 13.5px; font-weight: 650;">Amategeko</span>
+        <span class="num" style="font-size: 11.5px; color: #8D9AA2;">218</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 7px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 13px 12px; min-height: 44px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="8.4" stroke="#B57314" stroke-width="2"></circle>
+          <circle cx="12" cy="12" r="3.4" stroke="#B57314" stroke-width="2"></circle>
+        </svg>
+        <span style="font-size: 13.5px; font-weight: 650;">Amakosa</span>
+        <span class="num" style="font-size: 11.5px; color: #8D9AA2;">31</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- history -->
+  <div style="padding: 24px 20px 0;">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 11px;">
+      <span class="num" style="font-size: 14.5px; font-weight: 700; letter-spacing: -0.01em;">Amateka</span>
+      <a href="#" style="font-size: 12.5px; font-weight: 600;">Reba yose</a>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <div style="display: flex; align-items: center; gap: 13px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 12px 14px;">
+        <span class="num" style="display: flex; width: 42px; height: 42px; flex: none; border-radius: 12px; background: #E4F1EA; color: #0B7A4B; align-items: center; justify-content: center; font-size: 17px; font-weight: 700;">16</span>
+        <div style="display: flex; flex-direction: column; gap: 1px; flex-grow: 1;">
+          <span style="font-size: 14px; font-weight: 650;">Watsinze</span>
+          <span style="font-size: 12px; color: #8D9AA2;">Kuwa gatatu · 14:20 · 12:38</span>
+        </div>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M9.5 5.5 16 12l-6.5 6.5" stroke="#8D9AA2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+      </div>
+      <div style="display: flex; align-items: center; gap: 13px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 12px 14px;">
+        <span class="num" style="display: flex; width: 42px; height: 42px; flex: none; border-radius: 12px; background: #FAEAE8; color: #B8302B; align-items: center; justify-content: center; font-size: 17px; font-weight: 700;">9</span>
+        <div style="display: flex; flex-direction: column; gap: 1px; flex-grow: 1;">
+          <span style="font-size: 14px; font-weight: 650;">Ntiwatsinze</span>
+          <span style="font-size: 12px; color: #8D9AA2;">Kuwa mbere · 19:05 · 17:41</span>
+        </div>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M9.5 5.5 16 12l-6.5 6.5" stroke="#8D9AA2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

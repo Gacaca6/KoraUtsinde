@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b2545">
+<meta name="theme-color" content="#10161A">
 <meta name="description" content="Ikizamini cya provisoire — kwimenyereza no kwipimisha nta internet.">
 <title>Kora Utware — Ikizamini cya Provisoire</title>
 <link rel="manifest" href="manifest.webmanifest">
@@ -18,208 +18,385 @@
 </head>
 <body>
 
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="i-wheel" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+    <circle cx="12" cy="12" r="2.7" fill="currentColor"/>
+    <path d="M3 12h6.3M14.7 12H21M12 14.7V21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24" fill="none">
+    <path d="M5 12h13M12.5 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-back" viewBox="0 0 24 24" fill="none">
+    <path d="M14.5 5.5 8 12l6.5 6.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-close" viewBox="0 0 24 24" fill="none">
+    <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none">
+    <path d="m5 12.6 4.4 4.4L19 7.4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-cross" viewBox="0 0 24 24" fill="none">
+    <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24" fill="none">
+    <rect x="4.5" y="10.5" width="15" height="10" rx="2.4" stroke="currentColor" stroke-width="2"/>
+    <path d="M8.2 10.5V7.8a3.8 3.8 0 0 1 7.6 0v2.7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.2"/>
+    <path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24" fill="none">
+    <path d="M6 3.2v17.6M6 4.4h11.6l-2.4 3.8 2.4 3.8H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24" fill="none">
+    <path d="M2.6 12S6 5.8 12 5.8 21.4 12 21.4 12 18 18.2 12 18.2 2.6 12 2.6 12Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+    <circle cx="12" cy="12" r="2.8" stroke="currentColor" stroke-width="1.9"/>
+  </symbol>
+  <symbol id="i-sign" viewBox="0 0 24 24" fill="none">
+    <path d="M12 3.6 21 19H3z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M12 10v3.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="12" cy="16.4" r="1.1" fill="currentColor"/>
+  </symbol>
+  <symbol id="i-book" viewBox="0 0 24 24" fill="none">
+    <path d="M5 4.5h9.5a2 2 0 0 1 2 2V20H7a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M8.6 9h5.2M8.6 12.6h5.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="i-target" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="12" r="8.4" stroke="currentColor" stroke-width="2"/>
+    <circle cx="12" cy="12" r="3.4" stroke="currentColor" stroke-width="2"/>
+  </symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24" fill="none">
+    <rect x="6" y="2.6" width="12" height="18.8" rx="2.6" stroke="currentColor" stroke-width="2"/>
+    <path d="M10.6 18.2h2.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24" fill="none">
+    <path d="M3.6 20.4 5 16.5a7.6 7.6 0 1 1 2.9 2.8z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24" fill="none">
+    <rect x="8" y="3.4" width="12.6" height="16" rx="2.4" stroke="currentColor" stroke-width="1.9"/>
+    <path d="M16 20.6H5.8a2.4 2.4 0 0 1-2.4-2.4V7.4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+    <path d="M12 7.6v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="12" cy="16" r="1.1" fill="currentColor"/>
+  </symbol>
+  <symbol id="i-help" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.9"/>
+    <path d="M9.7 9.4a2.4 2.4 0 1 1 3.2 2.3c-.6.2-.9.7-.9 1.3v.4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+    <circle cx="12" cy="16.4" r="1.05" fill="currentColor"/>
+  </symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24" fill="none">
+    <path d="M9.5 5.5 16 12l-6.5 6.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+</svg>
+
 <div id="boot" class="boot">
-  <div class="boot-mark">KU</div>
+  <span class="boot-mark"><svg width="30" height="30"><use href="#i-wheel"/></svg></span>
   <p>Gutegura ibibazo…</p>
 </div>
 
-<!-- ═══════════════ AHABANZA / HOME ═══════════════ -->
+<!-- ═══════════════ AHABANZA ═══════════════ -->
 <section id="screen-home" class="screen">
-  <header class="hero">
-    <div class="hero-top">
-      <div class="brand">
-        <span class="brand-mark">KU</span>
-        <span class="brand-text">
-          <strong>Kora Utware</strong>
-          <small>Ikizamini cya provisoire</small>
-        </span>
-      </div>
-      <button id="btn-install" class="ghost-btn hidden" type="button">Shyiraho</button>
+  <header class="home-head">
+    <div class="brand">
+      <span class="brand-mark"><svg width="19" height="19"><use href="#i-wheel"/></svg></span>
+      <span class="brand-name">Kora Utware</span>
     </div>
-
-    <div class="readiness" id="readiness">
-      <div class="ready-ring">
-        <svg viewBox="0 0 120 120" aria-hidden="true">
-          <circle class="ring-bg" cx="60" cy="60" r="52"></circle>
-          <circle class="ring-fg" id="ring-fg" cx="60" cy="60" r="52"></circle>
-        </svg>
-        <div class="ready-num"><span id="ready-value">—</span></div>
-      </div>
-      <div class="ready-text">
-        <strong id="ready-label">Ntabwo urapima</strong>
-        <span id="ready-sub">Tangira ikizamini cya mbere kugira ngo umenye aho ugeze.</span>
-      </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button id="btn-install" class="pill pill-ghost hidden" type="button">Shyiraho</button>
+      <span id="status-pill" class="pill pill-trial"></span>
     </div>
   </header>
 
   <main class="wrap">
-    <button id="btn-start-exam" class="primary-btn big" type="button">
-      <span class="big-label">Tangira Ikizamini</span>
-      <span class="big-sub">Ibibazo 20 · Iminota <span data-mins>20</span> · Gutsinda 12/20</span>
-    </button>
 
-    <div id="resume-card" class="card resume hidden">
+    <div class="card">
+      <div class="ready-top">
+        <div>
+          <span class="eyebrow">Aho ugeze</span>
+          <div class="ready-score num"><span id="ready-value">—</span></div>
+          <div class="ready-label" id="ready-label">Ntabwo urapima</div>
+          <div class="ready-sub" id="ready-sub">Tangira ikizamini cya mbere kugira ngo umenye aho ugeze.</div>
+        </div>
+        <div class="spark" id="spark" aria-hidden="true"></div>
+      </div>
+      <div class="rule"></div>
+      <div class="mini-grid">
+        <div class="mini"><b id="st-attempts">0</b><span>Ibizamini</span></div>
+        <div class="mini"><b id="st-best">—</b><span>Ahanitse</span></div>
+        <div class="mini"><b id="st-wrong">0</b><span>Amakosa</span></div>
+      </div>
+    </div>
+
+    <div style="margin-top:14px">
+      <button id="btn-start-exam" class="cta" type="button">
+        <span>
+          <span class="cta-title" id="cta-title">Tangira Ikizamini</span><br>
+          <span class="cta-sub" id="cta-sub">Ibibazo 20 · Iminota <span data-mins>20</span> · 12/20</span>
+        </span>
+        <span class="cta-arrow"><svg width="19" height="19"><use href="#i-arrow"/></svg></span>
+      </button>
+    </div>
+
+    <div id="resume-card" class="card resume hidden" style="margin-top:12px">
       <div>
-        <strong>Hari ikizamini utarangije</strong>
-        <span id="resume-info" class="muted"></span>
+        <strong style="font-size:14.5px">Hari ikizamini utarangije</strong>
+        <div id="resume-info" class="muted" style="font-size:12.5px"></div>
       </div>
       <div class="resume-actions">
-        <button id="btn-resume" class="primary-btn small" type="button">Komeza</button>
-        <button id="btn-discard" class="ghost-btn small" type="button">Siba</button>
+        <button id="btn-resume" class="btn btn-go" type="button" style="min-height:42px;padding:9px 16px;font-size:13.5px">Komeza</button>
+        <button id="btn-discard" class="btn" type="button" style="min-height:42px;padding:9px 16px;font-size:13.5px">Siba</button>
       </div>
     </div>
 
+    <div class="sec-head">
+      <span class="sec-title">Kwimenyereza</span>
+      <span class="sec-meta"><span id="cnt-all">0</span> ibibazo</span>
+    </div>
     <div class="tiles">
-      <button class="tile" data-practice="all" type="button">
-        <span class="tile-icon" aria-hidden="true">📚</span>
-        <strong>Kwimenyereza</strong>
-        <small>Ibibazo byose · <span id="cnt-all">0</span></small>
-      </button>
       <button class="tile" data-practice="sign" type="button">
-        <span class="tile-icon" aria-hidden="true">🛑</span>
+        <svg width="20" height="20" style="color:var(--stop)"><use href="#i-sign"/></svg>
         <strong>Ibyapa</strong>
-        <small>Ibimenyetso byo mu muhanda · <span id="cnt-sign">0</span></small>
+        <span id="cnt-sign">0</span>
       </button>
       <button class="tile" data-practice="rule" type="button">
-        <span class="tile-icon" aria-hidden="true">📖</span>
+        <svg width="20" height="20" style="color:var(--go)"><use href="#i-book"/></svg>
         <strong>Amategeko</strong>
-        <small>Amabwiriza y'umuhanda · <span id="cnt-rule">0</span></small>
+        <span id="cnt-rule">0</span>
       </button>
       <button class="tile" data-practice="wrong" type="button">
-        <span class="tile-icon" aria-hidden="true">🎯</span>
-        <strong>Amakosa yanjye</strong>
-        <small>Ibyo wibeshyeho · <span id="cnt-wrong">0</span></small>
+        <svg width="20" height="20" style="color:var(--caution)"><use href="#i-target"/></svg>
+        <strong>Amakosa</strong>
+        <span id="cnt-wrong">0</span>
       </button>
     </div>
 
-    <div class="card stats-card">
-      <h2>Aho ugeze</h2>
-      <div class="stat-grid">
-        <div class="stat"><b id="st-attempts">0</b><span>Ibizamini</span></div>
-        <div class="stat"><b id="st-passed">0</b><span>Watsinze</span></div>
-        <div class="stat"><b id="st-best">—</b><span>Amanota ahanitse</span></div>
-        <div class="stat"><b id="st-avg">—</b><span>Impuzandengo</span></div>
-      </div>
-      <div id="spark" class="spark" aria-hidden="true"></div>
-      <button id="btn-history" class="link-btn" type="button">Reba amateka yose</button>
-    </div>
+    <div id="home-upsell" class="hidden"></div>
 
-    <div class="card settings-card">
-      <h2>Igenamiterere</h2>
-      <label class="row-set">
+    <div class="sec-head">
+      <span class="sec-title">Amateka</span>
+      <button id="btn-history" class="link-btn" type="button">Reba yose</button>
+    </div>
+    <div id="home-hist" class="hist-list"></div>
+
+    <div class="card" style="margin-top:22px">
+      <span class="eyebrow">Igenamiterere</span>
+      <label class="row-set" style="margin-top:8px">
         <span>Igihe cy'ikizamini</span>
         <select id="set-duration">
           <option value="20">Iminota 20</option>
           <option value="30">Iminota 30</option>
-          <option value="0">Nta gihe ntarengwa</option>
+          <option value="0">Nta gihe</option>
         </select>
       </label>
       <label class="row-set">
-        <span>Kwibutsa amasegonda 60 asigaye</span>
+        <span>Kwibutsa umunota wa nyuma</span>
         <input type="checkbox" id="set-warn" checked>
       </label>
-      <p class="fineprint">
-        Ibibazo <b id="fp-count">398</b> byakuwe mu gitabo cya provisoire.
-        Porogaramu ikora nta internet.
-      </p>
-      <p class="fineprint" id="ios-hint">
-        <b>Kuyishyira kuri telefone:</b> kuri Android fungura menu ya Chrome uhitemo
-        “Install app”. Kuri iPhone kanda ikimenyetso cyo gusangiza muri Safari,
-        uhitemo “Add to Home Screen”.
-      </p>
+      <p class="fineprint" id="fineprint"></p>
     </div>
   </main>
 </section>
 
-<!-- ═══════════════ IKIZAMINI / EXAM ═══════════════ -->
-<section id="screen-exam" class="screen exam">
+<!-- ═══════════════ IKIZAMINI ═══════════════ -->
+<section id="screen-exam" class="screen">
   <header class="exam-bar">
-    <button id="btn-quit" class="icon-btn" type="button" aria-label="Sohoka">✕</button>
-    <div class="exam-progress">
-      <div class="exam-count"><span id="ex-pos">1</span>/<span id="ex-total">20</span></div>
-      <div class="pbar"><div id="ex-pbar" class="pbar-fill"></div></div>
+    <div class="exam-bar-inner">
+      <button id="btn-quit" class="icon-btn" type="button" aria-label="Sohoka">
+        <svg width="16" height="16"><use href="#i-close"/></svg>
+      </button>
+      <div class="exam-progress">
+        <div class="exam-count">
+          <span>IKIBAZO <b id="ex-pos">1</b> / <span id="ex-total">20</span></span>
+          <em id="ex-left"></em>
+        </div>
+        <div class="pbar"><span id="ex-pbar" class="pbar-fill"></span></div>
+      </div>
+      <div id="ex-timer" class="timer">20:00</div>
     </div>
-    <div id="ex-timer" class="timer">20:00</div>
   </header>
-
   <main id="ex-body" class="wrap exam-body"></main>
-
-  <footer class="exam-foot">
-    <button id="btn-prev" class="ghost-btn" type="button">‹ Inyuma</button>
-    <button id="btn-grid" class="ghost-btn" type="button">Ibibazo</button>
-    <button id="btn-flag" class="ghost-btn" type="button">⚑ Menya</button>
-    <button id="btn-next" class="primary-btn" type="button">Komeza ›</button>
+  <footer class="foot">
+    <div class="foot-inner">
+      <button id="btn-prev" class="btn" type="button">Inyuma</button>
+      <button id="btn-grid" class="btn" type="button">Ibibazo</button>
+      <button id="btn-flag" class="btn" type="button">
+        <svg width="14" height="14"><use href="#i-flag"/></svg> Menya
+      </button>
+      <button id="btn-next" class="btn btn-go" type="button">Komeza</button>
+    </div>
   </footer>
 </section>
 
-<!-- ═══════════════ IBISUBIZO / RESULT ═══════════════ -->
+<!-- ═══════════════ IBISUBIZO ═══════════════ -->
 <section id="screen-result" class="screen">
-  <main class="wrap result-wrap">
-    <div id="verdict" class="verdict">
-      <div class="verdict-score"><span id="rs-score">0</span><small>/20</small></div>
-      <strong id="rs-title">—</strong>
-      <span id="rs-sub" class="muted"></span>
+  <div id="verdict" class="verdict">
+    <span id="verdict-mark" class="verdict-mark"><svg width="24" height="24"><use href="#i-check"/></svg></span>
+    <span class="verdict-score"><span id="rs-score">0</span><small>/20</small></span>
+    <strong id="rs-title">—</strong>
+    <p id="rs-sub"></p>
+  </div>
+  <main class="wrap">
+    <div class="card quad">
+      <div><b id="rs-right" style="color:var(--go)">0</b><span>Byiza</span></div>
+      <div><b id="rs-wrong" style="color:var(--stop)">0</b><span>Bibi</span></div>
+      <div><b id="rs-blank" style="color:var(--ink-3)">0</b><span>Utasubije</span></div>
+      <div><b id="rs-time">—</b><span>Igihe</span></div>
     </div>
-
     <div class="card">
-      <div class="stat-grid">
-        <div class="stat"><b id="rs-right">0</b><span>Byiza</span></div>
-        <div class="stat"><b id="rs-wrong">0</b><span>Bibi</span></div>
-        <div class="stat"><b id="rs-blank">0</b><span>Utasubije</span></div>
-        <div class="stat"><b id="rs-time">—</b><span>Igihe</span></div>
+      <span class="eyebrow">Uko wagenze</span>
+      <div id="rs-bars" class="bars"></div>
+    </div>
+    <div id="result-upsell"></div>
+    <div class="stack" style="margin-top:18px;padding-bottom:24px">
+      <button id="btn-review" class="btn btn-ink btn-lg btn-block" type="button">
+        <svg width="18" height="18"><use href="#i-eye"/></svg> Reba ibisubizo
+      </button>
+      <div style="display:flex;gap:9px">
+        <button id="btn-again" class="btn" style="flex:1" type="button">Ongera</button>
+        <button id="btn-home" class="btn" style="flex:1" type="button">Ahabanza</button>
+      </div>
+    </div>
+  </main>
+</section>
+
+<!-- ═══════════════ GUSUBIRAMO ═══════════════ -->
+<section id="screen-review" class="screen">
+  <header class="sub-bar">
+    <button class="icon-btn" data-back type="button"><svg width="18" height="18"><use href="#i-back"/></svg></button>
+    <h1 id="review-title">Gusubiramo</h1>
+    <span class="sub-end" id="review-score"></span>
+  </header>
+  <main id="review-body" class="wrap" style="padding-bottom:32px"></main>
+</section>
+
+<!-- ═══════════════ KWIMENYEREZA ═══════════════ -->
+<section id="screen-practice" class="screen">
+  <header class="sub-bar">
+    <button class="icon-btn" data-back type="button"><svg width="18" height="18"><use href="#i-back"/></svg></button>
+    <div class="pr-sub">
+      <h1 id="pr-title" style="font-size:15.5px">Kwimenyereza</h1>
+      <span id="pr-pos"></span>
+    </div>
+    <div class="tally"><b class="ok" id="pr-ok">0</b><i></i><b class="bad" id="pr-bad">0</b></div>
+  </header>
+  <main id="pr-body" class="wrap practice-body"></main>
+  <footer class="foot">
+    <div class="foot-inner">
+      <button id="pr-prev" class="btn" type="button">Inyuma</button>
+      <button id="pr-next" class="btn btn-go" type="button" style="flex:2">Komeza</button>
+    </div>
+  </footer>
+</section>
+
+<!-- ═══════════════ AMATEKA ═══════════════ -->
+<section id="screen-history" class="screen">
+  <header class="sub-bar">
+    <button class="icon-btn" data-back type="button"><svg width="18" height="18"><use href="#i-back"/></svg></button>
+    <h1>Amateka</h1>
+    <button id="btn-clear" class="link-btn" style="min-width:40px" type="button">Siba</button>
+  </header>
+  <main id="history-body" class="wrap" style="padding-bottom:32px"></main>
+</section>
+
+<!-- ═══════════════ KWISHYURA ═══════════════ -->
+<section id="screen-paywall" class="screen">
+  <div class="pay-hero">
+    <div class="pay-hero-inner">
+      <span class="pay-lock"><svg width="22" height="22"><use href="#i-lock"/></svg></span>
+      <h1 id="pay-title">Ikizamini cyawe cy'ubuntu kirangiye</h1>
+      <p id="pay-sub">Ishyura rimwe gusa ukomeze wimenyereze ibibazo byose kugeza utsinze provisoire.</p>
+    </div>
+  </div>
+  <main class="wrap">
+    <div class="card price-card">
+      <div class="price-row">
+        <span class="price"><span id="pay-price">1,000</span> <small id="pay-cur">RWF</small></span>
+        <span class="pill pill-paid">Burundu</span>
+      </div>
+      <p class="muted" style="margin:4px 0 0;font-size:12.5px">Wishyura rimwe. Nta kwiyandikisha, nta kwishyura buri kwezi.</p>
+      <div class="rule"></div>
+      <div class="perks">
+        <div class="perk"><svg width="17" height="17"><use href="#i-check"/></svg><span>Ibibazo <b class="num" id="pay-count">398</b> byose bya provisoire</span></div>
+        <div class="perk"><svg width="17" height="17"><use href="#i-check"/></svg><span>Ibizamini bitagira umupaka</span></div>
+        <div class="perk"><svg width="17" height="17"><use href="#i-check"/></svg><span>Ikora nta internet, ubuziraherezo</span></div>
       </div>
     </div>
 
-    <div id="rs-breakdown" class="card"></div>
+    <div class="card">
+      <span class="eyebrow">Uko wishyura</span>
+      <div class="steps">
+        <div class="step"><i>1</i><span>Ohereza <b id="pay-amount">1,000 RWF</b> kuri MoMo <button id="pay-copy" class="momo-num" style="border:0;background:none;padding:0;color:var(--go)"><span id="pay-momo">—</span><svg width="13" height="13"><use href="#i-copy"/></svg></button></span></div>
+        <div class="step"><i>2</i><span>Ohereza ubutumwa na <b>nimero ya transaction</b> kuri WhatsApp cyangwa SMS</span></div>
+        <div class="step"><i>3</i><span>Wakira <b>kode</b>, uyandike hano, ufungure burundu</span></div>
+      </div>
+    </div>
 
-    <div class="stack">
-      <button id="btn-review" class="primary-btn" type="button">Reba ibisubizo</button>
-      <button id="btn-again" class="ghost-btn" type="button">Ongera ugerageze</button>
-      <button id="btn-home" class="ghost-btn" type="button">Subira ahabanza</button>
+    <div class="stack" style="margin-top:16px;padding-bottom:26px">
+      <button id="pay-dial" class="btn btn-go btn-lg btn-block" type="button">
+        <svg width="18" height="18"><use href="#i-phone"/></svg> Ishyura kuri MoMo
+      </button>
+      <div style="display:flex;gap:9px">
+        <button id="pay-whatsapp" class="btn" style="flex:1" type="button">
+          <svg width="17" height="17"><use href="#i-chat"/></svg> WhatsApp
+        </button>
+        <button id="pay-unlock" class="btn" style="flex:1" type="button">
+          <svg width="17" height="17"><use href="#i-lock"/></svg> Mfite kode
+        </button>
+      </div>
+      <button id="pay-back" class="btn btn-quiet btn-block" type="button">Subira inyuma</button>
+      <p class="fineprint" style="text-align:center">Kode imwe ifungura terefone imwe. Ibyo wakoze bibikwa.</p>
     </div>
   </main>
 </section>
 
-<!-- ═══════════════ GUSUBIRAMO / REVIEW ═══════════════ -->
-<section id="screen-review" class="screen">
+<!-- ═══════════════ KODE ═══════════════ -->
+<section id="screen-unlock" class="screen">
   <header class="sub-bar">
-    <button class="icon-btn" data-back type="button">‹</button>
-    <h1 id="review-title">Gusubiramo</h1>
-    <span></span>
+    <button class="icon-btn" data-back type="button"><svg width="18" height="18"><use href="#i-back"/></svg></button>
+    <h1>Andika kode</h1>
+    <span style="min-width:40px"></span>
   </header>
-  <main id="review-body" class="wrap"></main>
+  <main class="wrap" style="padding-top:28px">
+    <p class="muted" style="text-align:center;margin:0;font-size:14.5px;line-height:1.52">
+      Andika kode y'inyuguti 8 wahawe nyuma yo kwishyura.
+    </p>
+
+    <div class="code-wrap" id="code-wrap">
+      <div class="code-boxes" id="code-boxes"></div>
+      <input id="code-input" type="text" inputmode="text" autocomplete="one-time-code"
+             autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="8"
+             aria-label="Kode yo gufungura">
+    </div>
+
+    <div style="display:flex;justify-content:center;margin-top:14px">
+      <button id="code-paste" class="pill" style="background:var(--surface-2);color:var(--ink-2);min-height:44px;padding:0 16px;font-size:13.5px" type="button">
+        <svg width="15" height="15"><use href="#i-copy"/></svg> Komeka kode
+      </button>
+    </div>
+
+    <button id="code-submit" class="btn btn-go btn-lg btn-block" style="margin-top:26px" type="button" disabled>Fungura</button>
+
+    <div id="code-msg" class="hidden"></div>
+
+    <div class="rule" style="margin:26px 0 18px"></div>
+
+    <div class="help-row">
+      <svg width="18" height="18"><use href="#i-help"/></svg>
+      <span id="unlock-help">Ntabwo urabona kode? Ohereza ubutumwa hamwe na nimero ya transaction yawe.</span>
+    </div>
+  </main>
 </section>
 
-<!-- ═══════════════ KWIMENYEREZA / PRACTICE ═══════════════ -->
-<section id="screen-practice" class="screen">
-  <header class="sub-bar">
-    <button class="icon-btn" data-back type="button">‹</button>
-    <h1 id="pr-title">Kwimenyereza</h1>
-    <div id="pr-tally" class="tally"><span class="t-ok">0</span> · <span class="t-bad">0</span></div>
-  </header>
-  <main id="pr-body" class="wrap"></main>
-  <footer class="exam-foot">
-    <button id="pr-prev" class="ghost-btn" type="button">‹ Inyuma</button>
-    <button id="pr-next" class="primary-btn wide" type="button">Komeza ›</button>
-  </footer>
-</section>
-
-<!-- ═══════════════ AMATEKA / HISTORY ═══════════════ -->
-<section id="screen-history" class="screen">
-  <header class="sub-bar">
-    <button class="icon-btn" data-back type="button">‹</button>
-    <h1>Amateka</h1>
-    <button id="btn-clear" class="link-btn small" type="button">Siba</button>
-  </header>
-  <main id="history-body" class="wrap"></main>
-</section>
-
-<!-- ═══════════════ MODALS ═══════════════ -->
+<!-- ═══════════════ SHEETS ═══════════════ -->
 <div id="grid-sheet" class="sheet hidden">
   <div class="sheet-panel">
     <div class="sheet-head">
       <strong>Ibibazo</strong>
-      <button class="icon-btn" data-close-sheet type="button">✕</button>
+      <button class="icon-btn" data-close-sheet type="button"><svg width="16" height="16"><use href="#i-close"/></svg></button>
     </div>
     <div class="legend">
       <span><i class="dot done"></i>Wasubije</span>
@@ -227,23 +404,24 @@
       <span><i class="dot todo"></i>Ntacyo</span>
     </div>
     <div id="grid-nums" class="grid-nums"></div>
-    <button id="btn-submit" class="primary-btn wide" type="button">Ohereza ikizamini</button>
+    <button id="btn-submit" class="btn btn-go btn-lg btn-block" type="button">Ohereza ikizamini</button>
   </div>
 </div>
 
 <div id="confirm" class="sheet sheet-center hidden">
   <div class="sheet-panel confirm-panel">
-    <strong id="cf-title">Ohereza?</strong>
-    <p id="cf-text" class="muted"></p>
+    <strong id="cf-title">—</strong>
+    <p id="cf-text"></p>
     <div class="confirm-actions">
-      <button id="cf-no" class="ghost-btn" type="button">Oya</button>
-      <button id="cf-yes" class="primary-btn" type="button">Yego</button>
+      <button id="cf-no" class="btn" type="button">Oya</button>
+      <button id="cf-yes" class="btn btn-go" type="button">Yego</button>
     </div>
   </div>
 </div>
 
 <div id="toast" class="toast hidden"></div>
 
+<script src="config.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap">
+  <style>
+    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+    a { color: #0B7A4B; text-decoration: none; } a:hover { color: #085B38; }
+    .num { font-family: "Space Grotesk", system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+  </style>
+</helmet>
+
+<div style="width: 390px; height: 844px; background: #F6F4EF; color: #10161A; display: flex; flex-direction: column; overflow: hidden;">
+
+  <!-- bar -->
+  <div style="display: flex; align-items: center; gap: 10px; padding: 18px 14px 14px; border-bottom: 1px solid #E3DFD6; background: #FFFFFF;">
+    <span style="display: flex; width: 38px; height: 38px; border-radius: 11px; align-items: center; justify-content: center;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M14.5 5.5 8 12l6.5 6.5" stroke="#10161A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+    </span>
+    <span class="num" style="font-size: 15.5px; font-weight: 700; flex-grow: 1; text-align: center; letter-spacing: -0.01em;">Andika kode</span>
+    <span style="width: 38px;"></span>
+  </div>
+
+  <div style="padding: 30px 24px 0; display: flex; flex-direction: column;">
+
+    <p style="margin: 0; font-size: 14.5px; line-height: 1.52; color: #5C6A72; text-align: center; text-wrap: pretty;">Andika kode y'inyuguti 8 wahawe nyuma yo kwishyura.</p>
+
+    <!-- segmented input -->
+    <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 26px;">
+      <span class="num" style="display: flex; width: 36px; height: 50px; border-radius: 11px; background: #FFFFFF; border: 1.5px solid #10161A; align-items: center; justify-content: center; font-size: 21px; font-weight: 700;">4</span>
+      <span class="num" style="display: flex; width: 36px; height: 50px; border-radius: 11px; background: #FFFFFF; border: 1.5px solid #10161A; align-items: center; justify-content: center; font-size: 21px; font-weight: 700;">W</span>
+      <span class="num" style="display: flex; width: 36px; height: 50px; border-radius: 11px; background: #FFFFFF; border: 1.5px solid #10161A; align-items: center; justify-content: center; font-size: 21px; font-weight: 700;">7</span>
+      <span class="num" style="display: flex; width: 36px; height: 50px; border-radius: 11px; background: #FFFFFF; border: 1.5px solid #10161A; align-items: center; justify-content: center; font-size: 21px; font-weight: 700;">K</span>
+      <span style="display: block; width: 11px; height: 1.5px; background: #C9C3B6; border-radius: 2px;"></span>
+      <span class="num" style="display: flex; width: 36px; height: 50px; border-radius: 11px; background: #FFFFFF; border: 1.5px solid #0B7A4B; align-items: center; justify-content: center; font-size: 21px; font-weight: 700;">Q</span>
+      <span class="num" style="display: flex; width: 36px; height: 50px; border-radius: 11px; background: #FFFFFF; border: 1.5px solid #E3DFD6; align-items: center; justify-content: center; font-size: 21px; font-weight: 700; color: #C9C3B6;"></span>
+      <span class="num" style="display: flex; width: 36px; height: 50px; border-radius: 11px; background: #FFFFFF; border: 1.5px solid #E3DFD6; align-items: center; justify-content: center; font-size: 21px; font-weight: 700; color: #C9C3B6;"></span>
+      <span class="num" style="display: flex; width: 36px; height: 50px; border-radius: 11px; background: #FFFFFF; border: 1.5px solid #E3DFD6; align-items: center; justify-content: center; font-size: 21px; font-weight: 700; color: #C9C3B6;"></span>
+    </div>
+
+    <div style="display: flex; justify-content: center; margin-top: 14px;">
+      <span style="display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 0 16px; border-radius: 999px; background: #EDEAE2; font-size: 13.5px; font-weight: 600; color: #5C6A72;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="8" y="3.4" width="12.6" height="16" rx="2.4" stroke="currentColor" stroke-width="1.9"></rect>
+          <path d="M16 20.6H5.8a2.4 2.4 0 0 1-2.4-2.4V7.4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"></path>
+        </svg>
+        Komeka kode
+      </span>
+    </div>
+
+    <span class="num" style="display: flex; min-height: 52px; align-items: center; justify-content: center; margin-top: 26px; background: #D8D3C8; border-radius: 14px; font-size: 15.5px; font-weight: 700; color: #FFFFFF;">Fungura</span>
+
+    <!-- error example -->
+    <div style="display: flex; align-items: flex-start; gap: 9px; margin-top: 16px; background: #FAEAE8; border: 1px solid #F0CFCC; border-radius: 13px; padding: 12px 14px;">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="flex: none; margin-top: 1px;">
+        <circle cx="12" cy="12" r="9" stroke="#B8302B" stroke-width="2"></circle>
+        <path d="M12 7.6v5" stroke="#B8302B" stroke-width="2" stroke-linecap="round"></path>
+        <circle cx="12" cy="16" r="1.1" fill="#B8302B"></circle>
+      </svg>
+      <span style="font-size: 13px; line-height: 1.45; color: #8E241F;">Iyi kode ntabwo ariyo. Genzura neza inyuguti, cyangwa uduhamagare.</span>
+    </div>
+
+    <div style="height: 1px; background: #E3DFD6; margin: 26px 0 18px;"></div>
+
+    <div style="display: flex; align-items: flex-start; gap: 11px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="flex: none; margin-top: 1px;">
+        <circle cx="12" cy="12" r="9" stroke="#8D9AA2" stroke-width="1.9"></circle>
+        <path d="M9.7 9.4a2.4 2.4 0 1 1 3.2 2.3c-.6.2-.9.7-.9 1.3v.4" stroke="#8D9AA2" stroke-width="1.9" stroke-linecap="round"></path>
+        <circle cx="12" cy="16.4" r="1.05" fill="#8D9AA2"></circle>
+      </svg>
+      <span style="font-size: 13px; line-height: 1.5; color: #5C6A72;">Ntabwo urabona kode? Ohereza ubutumwa kuri WhatsApp <b class="num">078 000 0000</b> hamwe na nimero ya transaction yawe.</span>
+    </div>
+
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

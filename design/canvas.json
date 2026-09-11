@@ -1,0 +1,46 @@
+{
+  "pages": [
+    { "id": "page-1", "name": "Igishushanyo" },
+    { "id": "page-2", "name": "Andi mayeri" }
+  ],
+  "artboards": [
+    { "file": "Main.dc.html",       "page": "page-1", "x": 0,    "y": 0,    "w": 390, "h": 844, "title": "Ahabanza" },
+    { "file": "Exam.dc.html",       "page": "page-1", "x": 470,  "y": 0,    "w": 390, "h": 844, "title": "Ikizamini" },
+    { "file": "Practice.dc.html",   "page": "page-1", "x": 940,  "y": 0,    "w": 390, "h": 844, "title": "Kwimenyereza" },
+    { "file": "Review.dc.html",     "page": "page-1", "x": 1410, "y": 0,    "w": 390, "h": 844, "title": "Gusubiramo" },
+    { "file": "Paywall.dc.html",    "page": "page-1", "x": 0,    "y": 964,  "w": 390, "h": 844, "title": "Kwishyura" },
+    { "file": "Unlock.dc.html",     "page": "page-1", "x": 470,  "y": 964,  "w": 390, "h": 844, "title": "Kode" },
+    { "file": "ResultPass.dc.html", "page": "page-1", "x": 940,  "y": 964,  "w": 390, "h": 844, "title": "Watsinze" },
+    { "file": "ResultFail.dc.html", "page": "page-1", "x": 1410, "y": 964,  "w": 390, "h": 844, "title": "Ntiwatsinze" },
+    { "file": "System.dc.html",     "page": "page-1", "x": 0,    "y": 1928, "w": 760, "h": 960, "title": "Sisitemu" },
+    { "file": "DirectionB.dc.html", "page": "page-2", "x": 0,    "y": 0,    "w": 330, "h": 600 },
+    { "file": "DirectionC.dc.html", "page": "page-2", "x": 410,  "y": 0,    "w": 330, "h": 600 }
+  ],
+  "annotations": [
+    {
+      "id": "direction",
+      "page": "page-1",
+      "x": 0,
+      "y": -210,
+      "w": 860,
+      "text": "Direction: traffic-signal semantics on warm paper.\nGreen = go / pass, amber = caution / flagged, red = stop / wrong — the same language the road code itself uses, so colour carries meaning instead of decoration.\nSpace Grotesk for numerals (score, timer, counts) over system-ui body, which keeps long Kinyarwanda sentences native and legible on cheap Android screens."
+    },
+    {
+      "id": "paywall-note",
+      "page": "page-1",
+      "x": 0,
+      "y": 1834,
+      "w": 860,
+      "text": "Paywall: one free exam, then 1,000 RWF once, forever.\nPayment is manual MoMo + an unlock code — no payment processor, no backend, nothing to integrate. The phone number and WhatsApp link are placeholders to fill in.\nThe upsell appears on the result screen (where the trial ends) and as a full wall on the next locked action."
+    },
+    {
+      "id": "alternates",
+      "page": "page-2",
+      "x": 0,
+      "y": -150,
+      "w": 740,
+      "text": "Two directions not taken, kept as low-fi sketches so the choice is visible.\nB reads as a machine under test but is cold and hard to read in long Kinyarwanda sentences. C feels like the printed booklet but serif at small sizes strains on cheap screens."
+    }
+  ],
+  "launch": { "view": "canvas", "page": "page-1" }
+}
